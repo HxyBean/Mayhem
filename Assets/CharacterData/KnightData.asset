@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb5b46c5281f6e842918e28b0a0379ac, type: 3}
+  m_Name: KnightData
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterData
+  characterName: Knight
+  baseBulletDamage: 15
+  baseMaxHP: 200
+  baseMoveSpeed: 6
+  combatType: 1
+  bulletPrefab: {fileID: 0}
+  abilityType: 2
+  animatorController: {fileID: 22100000, guid: 26b165dae72482843863cca7e8f7cae9, type: 2}
+  idleSprite: {fileID: 1708082554452059069, guid: 99a0eef51d6ec884688e7e81771a4270, type: 3}
+  weaponSprite: {fileID: 21300000, guid: 6c5a4a039ed87044295508bd426cf357, type: 3}
+  shootSound: {fileID: 0}
+  reloadSound: {fileID: 0}
+  shootButtonIcon: {fileID: -6717884257390833292, guid: 923e788bdb8c78f40bd9203e145757d2, type: 3}
+  reloadButtonIcon: {fileID: 0}
+  exclusiveAugments:
+  - name: SWORDSPIN
+    description: swordspin
+    type: SwordSpin
+    requiredLevel: 1
+  - name: SwordSpinCooldown
+    description: '- 2s'
+    type: SwordSpinCooldown
+    requiredLevel: 7
+  - name: ShieldCost
+    description: -1 cost stamina
+    type: ShieldCost
+    requiredLevel: 3
+  - name: StaminaRegen
+    description: +1 stamnia/s
+    type: StaminaRegen
+    requiredLevel: 5
+  - name: AttackSpeed
+    description: -0.1s
+    type: AttackSpeed
+    requiredLevel: 3

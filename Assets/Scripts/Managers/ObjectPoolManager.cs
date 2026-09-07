@@ -80,6 +80,9 @@ public class ObjectPoolManager : MonoBehaviour
             // Nếu object vẫn đang Active thì mới Release để tránh lỗi Release 2 lần
             if (obj.activeSelf)
             {
+                // Gỡ khỏi parent (VD hiệu ứng được gắn theo Player lúc Spawn) trước khi trả về Pool,
+                // để lần Spawn tiếp theo không bị dính nhầm vào parent cũ.
+                obj.transform.SetParent(null);
                 po.pool.Release(obj);
             }
         }

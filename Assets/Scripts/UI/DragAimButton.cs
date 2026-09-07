@@ -8,7 +8,9 @@ public abstract class DragAimButton : MonoBehaviour, IPointerDownHandler, IDragH
 {
     [SerializeField] protected Transform aimReticle;
     [SerializeField] protected RectTransform cancelZone;
-    [Tooltip("0 = không giới hạn tầm kéo. > 0: giới hạn khoảng cách tối đa từ vị trí nhân vật")]
+    [Tooltip("0 = không giới hạn tầm kéo tối thiểu. > 0: khoảng cách tối thiểu từ vị trí nhân vật - kéo gần hơn thì aim tự bị đẩy ra đúng khoảng cách này (VD Bomb/Potion = 3)")]
+    [SerializeField] protected float minRange = 0f;
+    [Tooltip("0 = không giới hạn tầm kéo tối đa. > 0: khoảng cách tối đa từ vị trí nhân vật. Đặt Min = Max để khóa cứng đúng 1 khoảng cách cố định (VD Blink = 5/5)")]
     [SerializeField] protected float maxRange = 0f;
 
     private bool isDragging = false;
@@ -58,6 +60,14 @@ public abstract class DragAimButton : MonoBehaviour, IPointerDownHandler, IDragH
             if (maxRange > 0f)
             {
                 worldDelta = Vector3.ClampMagnitude(worldDelta, maxRange);
+            }
+
+            if (minRange > 0f && worldDelta.sqrMagnitude < minRange * minRange)
+            {
+                // Nếu chưa kéo đủ xa (kể cả chưa kéo gì, worldDelta gần như bằng 0 lúc mới nhấn) vẫn cần
+                // 1 hướng để đẩy aim ra đúng minRange - mặc định hướng sang phải nếu chưa xác định được hướng kéo.
+                Vector3 direction = worldDelta.sqrMagnitude > 0.0001f ? worldDelta.normalized : Vector3.right;
+                worldDelta = direction * minRange;
             }
 
             Vector3 targetPos = Player.Instance.transform.position + worldDelta;

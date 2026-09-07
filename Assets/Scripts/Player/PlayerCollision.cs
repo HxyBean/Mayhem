@@ -52,8 +52,27 @@ public class PlayerCollision : MonoBehaviour
         else if (collision.CompareTag("ExpBoss"))
         {
             if (GameManager.Instance != null) GameManager.Instance.AddXP(50); // Viên boss cộng 50 XP
+            PullAllExpOrbsToPlayer(); // Hút toàn bộ EXP còn lại trên bản đồ về phía nhân vật
             ReturnToPoolOrDestroy(collision.gameObject);
             if (audioManager != null) audioManager.PlayEnergySound();
+        }
+    }
+
+    // Gọi khi nhặt viên EXP Boss - hút bất kể các viên EXP khác đang ở đâu trên bản đồ, không phụ thuộc lõi Magnet
+    private void PullAllExpOrbsToPlayer()
+    {
+        PullOrbsWithTag("ExpSmall");
+        PullOrbsWithTag("ExpBig");
+        PullOrbsWithTag("ExpBoss");
+    }
+
+    private void PullOrbsWithTag(string tag)
+    {
+        GameObject[] orbs = GameObject.FindGameObjectsWithTag(tag);
+        foreach (GameObject orb in orbs)
+        {
+            Pickup pickup = orb.GetComponent<Pickup>();
+            if (pickup != null) pickup.ForceMagnetPull();
         }
     }
 

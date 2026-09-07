@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5561467560795444110}
   - component: {fileID: 4392557986188417030}
   - component: {fileID: 1528591463722990345}
+  - component: {fileID: -4589038329884216113}
   m_Layer: 0
   m_Name: Energy
   m_TagString: Energy
@@ -81,7 +82,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -2099618307
-  m_SortingLayer: 6
+  m_SortingLayer: 7
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: -7213742777133032008, guid: bf58f2c9c0b26da4bab29ca1e804c00d, type: 3}
@@ -165,3 +166,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AutoDestroyOrPool
   lifetime: 5
+--- !u!114 &-4589038329884216113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3451771213955610610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d749b5e61014206408d8ded7c8b13825, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Pickup
+  magnetSpeed: 8
