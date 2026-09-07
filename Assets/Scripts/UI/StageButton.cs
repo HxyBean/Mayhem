@@ -1,13 +1,13 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 // Gắn vào mỗi nút Level trong panel Stage Select (Scene MainMenu).
-// Tự khóa nút nếu Stage chưa mở khóa, bấm vào thì lưu Stage đã chọn rồi load Scene tương ứng.
+// Tự khóa nút nếu Stage chưa mở khóa, bấm vào thì lưu Stage đã chọn rồi mở panel Character Select.
 public class StageButton : MonoBehaviour
 {
     [SerializeField] private StageData stageData;
     [SerializeField] private GameObject lockedOverlay; // Icon ổ khóa hiển thị khi Stage chưa mở, có thể để trống
+    [SerializeField] private MainMenuUI mainMenuUI;
 
     private Button button;
 
@@ -32,10 +32,10 @@ public class StageButton : MonoBehaviour
 
     private void OnClick()
     {
-        if (stageData == null || string.IsNullOrEmpty(stageData.sceneName)) return;
+        if (stageData == null) return;
         if (!GameProgress.IsStageUnlocked(stageData.stageIndex)) return;
 
         GameProgress.SelectedStage = stageData;
-        SceneManager.LoadScene(stageData.sceneName);
+        if (mainMenuUI != null) mainMenuUI.ShowCharacterSelect();
     }
 }

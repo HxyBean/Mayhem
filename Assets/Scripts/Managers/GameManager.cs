@@ -41,6 +41,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private string mainMenuSceneName = "MainMenu";
     [Tooltip("Chỉ dùng khi Play trực tiếp Scene này trong Editor (không qua Main Menu/Stage Select)")]
     [SerializeField] private StageData debugStage;
+    [Tooltip("Chỉ dùng khi Play trực tiếp Scene này trong Editor (không qua Character Select)")]
+    [SerializeField] private CharacterData debugCharacter;
 
     // Private Fields
     private int currentEnergy = 0;
@@ -48,6 +50,7 @@ public class GameManager : MonoBehaviour
     private float currentXP = 0f;
     private float expMultiplier = 1f; // 100% kinh nghiệm
     private StageData currentStage;
+    public StageData CurrentStage => currentStage;
     public bool IsBossCalled { get; private set; } = false;
 
     // ==============================================
@@ -87,6 +90,18 @@ public class GameManager : MonoBehaviour
         if (AugmentManager.Instance != null)
         {
             AugmentManager.Instance.ApplyStageData(currentStage);
+        }
+
+        // Nhân vật được chọn ở màn Character Select; nếu Play thẳng Scene này trong Editor thì dùng debugCharacter
+        CharacterData currentCharacter = GameProgress.SelectedCharacter != null ? GameProgress.SelectedCharacter : debugCharacter;
+        if (currentCharacter != null)
+        {
+            if (Player.Instance != null) Player.Instance.ApplyCharacterData(currentCharacter);
+
+            Gun gun = FindFirstObjectByType<Gun>();
+            if (gun != null) gun.ApplyCharacterData(currentCharacter);
+
+            if (AugmentManager.Instance != null) AugmentManager.Instance.ApplyCharacterData(currentCharacter);
         }
 
         SetActiveMenu(null);

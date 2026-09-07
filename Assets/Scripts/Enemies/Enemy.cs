@@ -14,13 +14,55 @@ public abstract class Enemy : MonoBehaviour
     [SerializeField] protected GameObject bigXpObject;
     protected bool isDead = false;
 
+    // Hiệu ứng làm chậm (VD PotionZone). speedMultiplier = 1 nghĩa là tốc độ bình thường.
+    private float speedMultiplier = 1f;
+    private int slowStackCount = 0;
+
+    // Giá trị GỐC lấy từ Inspector lúc khởi tạo lần đầu (chưa nhân hệ số độ khó theo Stage).
+    // Lưu 1 lần trong Awake() để không bị nhân dồn mỗi khi Enemy được tái sử dụng từ Pool.
+    // protected để BossEnemy có thể tự điều chỉnh baseMaxHP khi tính máu hồi sinh.
+    protected float baseMoveSpeed;
+    protected float baseMaxHP;
+    protected float baseEnterDmg;
+    protected float baseStayDmg;
+    private bool statsCaptured = false;
+
+    protected virtual void Awake()
+    {
+        if (statsCaptured) return;
+
+        baseMoveSpeed = enemyMoveSpeed;
+        baseMaxHP = maxHP;
+        baseEnterDmg = enterDmg;
+        baseStayDmg = stayDmg;
+        statsCaptured = true;
+    }
 
     protected virtual void OnEnable()
     {
+        ApplyStageDifficulty();
+
         player = Player.Instance;
         currentHP = maxHP;
         isDead = false;
+        speedMultiplier = 1f;
+        slowStackCount = 0;
         UpdateHPBar();
+    }
+
+    // Scale máu/damage/tốc độ theo hệ số độ khó của Stage đang chơi (dùng chung 1 prefab cho mọi Level).
+    private void ApplyStageDifficulty()
+    {
+        // Ưu tiên Stage hiệu lực của GameManager (đã tự xử lý fallback debugStage khi Play thẳng Scene trong Editor)
+        StageData stage = (GameManager.Instance != null) ? GameManager.Instance.CurrentStage : GameProgress.SelectedStage;
+        float hpMul = (stage != null) ? stage.enemyHpMultiplier : 1f;
+        float dmgMul = (stage != null) ? stage.enemyDamageMultiplier : 1f;
+        float speedMul = (stage != null) ? stage.enemySpeedMultiplier : 1f;
+
+        maxHP = baseMaxHP * hpMul;
+        enterDmg = baseEnterDmg * dmgMul;
+        stayDmg = baseStayDmg * dmgMul;
+        enemyMoveSpeed = baseMoveSpeed * speedMul;
     }
 
     protected virtual void Update()
@@ -60,8 +102,26 @@ public abstract class Enemy : MonoBehaviour
     {
         if (player != null)
         {
-            transform.position = Vector2.MoveTowards(transform.position, player.transform.position, enemyMoveSpeed * Time.deltaTime);
+            float actualSpeed = enemyMoveSpeed * speedMultiplier;
+            transform.position = Vector2.MoveTowards(transform.position, player.transform.position, actualSpeed * Time.deltaTime);
             FlipEnemy();
+        }
+    }
+
+    // Gọi khi Enemy bước vào vùng làm chậm (VD PotionZone). Dùng đếm stack để an toàn khi đứng chồng nhiều vùng cùng lúc.
+    public void ApplySlow(float slowPercent)
+    {
+        slowStackCount++;
+        speedMultiplier = Mathf.Max(0.1f, 1f - Mathf.Clamp01(slowPercent));
+    }
+
+    // Gọi khi Enemy rời khỏi vùng làm chậm. Chỉ khi hết TẤT CẢ vùng đang chồng lên mới trả lại tốc độ bình thường.
+    public void RemoveSlow()
+    {
+        slowStackCount = Mathf.Max(0, slowStackCount - 1);
+        if (slowStackCount == 0)
+        {
+            speedMultiplier = 1f;
         }
     }
 

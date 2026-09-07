@@ -10,6 +10,9 @@ public static class GameProgress
     // Chỉ tồn tại trong phiên chơi hiện tại, không cần lưu PlayerPrefs.
     public static StageData SelectedStage { get; set; }
 
+    // CharacterData vừa được chọn ở Character Select (chọn lại mỗi lần vào 1 Level). Cũng chỉ tồn tại trong phiên hiện tại.
+    public static CharacterData SelectedCharacter { get; set; }
+
     // Số lượng Stage đã mở khóa, tính từ Stage 1. Mặc định luôn mở sẵn Stage 1.
     public static int UnlockedStageCount
     {
@@ -40,6 +43,7 @@ public static class GameProgress
     {
         UnlockedStageCount = 1;
         SelectedStage = null;
+        SelectedCharacter = null;
     }
 
 #if UNITY_EDITOR

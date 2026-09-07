@@ -20,11 +20,28 @@ public class Player : MonoBehaviour
     [SerializeField] private float dashTime = 0.2f;
     [SerializeField] private float dashCooldown = 1f;
 
+    [Header("Blink (Pháp sư)")]
+    [SerializeField] private float maxBlinkRange = 5f;
+    [SerializeField] private float blinkCooldown = 3f;
+    [Tooltip("Bán kính kiểm tra vật cản tại điểm đến, nên khớp kích thước Collider của Player")]
+    [SerializeField] private float blinkCheckRadius = 0.3f;
+    [Tooltip("Layer chứa vật cản (VD Rock) - Blink sẽ không bao giờ đưa Player vào bên trong các Layer này")]
+    [SerializeField] private LayerMask blinkObstacleMask;
+    [Tooltip("Overlay cooldown Blink, gán Image nằm trên chính nút BlinkButton (khác với Dash Bar vì 2 nút không hiện cùng lúc)")]
+    [SerializeField] private Image blinkCooldownBar;
+    [Tooltip("Hiệu ứng animation tại vị trí biến mất lúc bắt đầu Blink (để trống nếu không cần)")]
+    [SerializeField] private GameObject blinkStartEffectPrefab;
+    [Tooltip("Hiệu ứng animation tại vị trí xuất hiện sau khi Blink xong (để trống nếu không cần)")]
+    [SerializeField] private GameObject blinkEndEffectPrefab;
 
     [Header("UI & References")]
     [SerializeField] private Image hpBar;
     [SerializeField] private Image dashBar;
     [SerializeField] private GameManager gameManager;
+    [Tooltip("Nút Dash (Gunner) - sẽ tự ẩn/hiện theo nhân vật được chọn")]
+    [SerializeField] private GameObject dashButtonObj;
+    [Tooltip("Nút Blink kéo-thả (Pháp sư) - sẽ tự ẩn/hiện theo nhân vật được chọn")]
+    [SerializeField] private GameObject blinkButtonObj;
 
     // Private Components
     private Rigidbody2D rb;
@@ -37,6 +54,8 @@ public class Player : MonoBehaviour
     private bool isDashing = false;
     private bool canDash = true;
     private bool isRegenActive = false;
+    private bool canBlink = true;
+    private AbilityType abilityType = AbilityType.Dash;
 
     // ==============================================
     // UNITY CALLBACKS
@@ -187,6 +206,120 @@ public class Player : MonoBehaviour
         // HỒI CHIÊU XONG
         if (dashBar != null) dashBar.fillAmount = 0f;
         canDash = true;
+    }
+
+    // ==============================================
+    // BLINK (Pháp sư) — dịch chuyển tức thời, vị trí đến từ BlinkButton kéo-thả
+    // ==============================================
+    public bool CanBlink()
+    {
+        return canBlink;
+    }
+
+    public void Blink(Vector3 targetPosition)
+    {
+        if (!canBlink) return;
+        StartCoroutine(BlinkRoutine(targetPosition));
+    }
+
+    private IEnumerator BlinkRoutine(Vector3 targetPosition)
+    {
+        canBlink = false;
+
+        Vector3 startPosition = transform.position;
+
+        // Phòng hờ UI gửi vị trí ngoài tầm cho phép: luôn giới hạn lại đúng bán kính tối đa
+        Vector3 offset = Vector3.ClampMagnitude(targetPosition - startPosition, maxBlinkRange);
+        Vector3 rawTarget = startPosition + offset;
+
+        // Không bao giờ đưa Player vào bên trong vật cản (VD Rock) - lùi dần về phía vị trí gốc tới khi tìm được chỗ trống
+        Vector3 safeTarget = FindSafeBlinkPosition(startPosition, rawTarget);
+
+        SpawnBlinkEffect(blinkStartEffectPrefab, startPosition);
+        transform.position = safeTarget;
+        SpawnBlinkEffect(blinkEndEffectPrefab, safeTarget);
+
+        float timer = 0f;
+        if (blinkCooldownBar != null) blinkCooldownBar.fillAmount = 1f;
+
+        while (timer < blinkCooldown)
+        {
+            timer += Time.deltaTime;
+            if (blinkCooldownBar != null) blinkCooldownBar.fillAmount = 1f - (timer / blinkCooldown);
+            yield return null;
+        }
+
+        if (blinkCooldownBar != null) blinkCooldownBar.fillAmount = 0f;
+        canBlink = true;
+    }
+
+    private void SpawnBlinkEffect(GameObject prefab, Vector3 position)
+    {
+        if (prefab == null) return;
+
+        if (ObjectPoolManager.Instance != null)
+        {
+            ObjectPoolManager.Instance.SpawnObject(prefab, position, Quaternion.identity);
+        }
+        else
+        {
+            Instantiate(prefab, position, Quaternion.identity);
+        }
+    }
+
+    // Tìm vị trí gần "target" nhất mà không đè lên vật cản, bằng cách lùi dần về phía "origin"
+    private Vector3 FindSafeBlinkPosition(Vector3 origin, Vector3 target)
+    {
+        if (!Physics2D.OverlapCircle(target, blinkCheckRadius, blinkObstacleMask))
+        {
+            return target;
+        }
+
+        const int steps = 10;
+        for (int i = 1; i <= steps; i++)
+        {
+            Vector3 candidate = Vector3.Lerp(origin, target, 1f - (float)i / steps);
+            if (!Physics2D.OverlapCircle(candidate, blinkCheckRadius, blinkObstacleMask))
+            {
+                return candidate;
+            }
+        }
+
+        // Không tìm được chỗ trống nào trên đường đi - đứng yên tại chỗ thay vì kẹt vào vật cản
+        return origin;
+    }
+
+    public void ReduceBlinkCooldown(float amount)
+    {
+        blinkCooldown = Mathf.Max(0.5f, blinkCooldown*amount);
+    }
+
+    // ==============================================
+    // CHARACTER SELECT
+    // ==============================================
+    // Gọi từ GameManager.Start() theo nhân vật đã chọn ở Character Select
+    public void ApplyCharacterData(CharacterData character)
+    {
+        if (character == null) return;
+
+        Debug.Log($"[ApplyCharacterData] Nhân vật: {character.characterName} - AbilityType: {character.abilityType}");
+
+        bulletDamage = character.baseBulletDamage;
+        abilityType = character.abilityType;
+
+        bool isBlink = abilityType == AbilityType.Blink;
+        if (dashButtonObj != null) dashButtonObj.SetActive(!isBlink);
+        if (blinkButtonObj != null) blinkButtonObj.SetActive(isBlink);
+
+        // Đổi tạo hình/animation theo nhân vật được chọn
+        if (character.animatorController != null && animator != null)
+        {
+            animator.runtimeAnimatorController = character.animatorController;
+        }
+        if (character.idleSprite != null && spriteRenderer != null)
+        {
+            spriteRenderer.sprite = character.idleSprite;
+        }
     }
 
     // ==============================================

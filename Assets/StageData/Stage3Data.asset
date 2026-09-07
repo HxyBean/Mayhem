@@ -15,4 +15,7 @@ MonoBehaviour:
   stageIndex: 3
   stageName: Level 3
   sceneName: Level3
+  enemyHpMultiplier: 2
+  enemyDamageMultiplier: 1.6
+  enemySpeedMultiplier: 1.1
   extraAugments: []

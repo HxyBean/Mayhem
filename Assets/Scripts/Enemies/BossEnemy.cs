@@ -14,7 +14,6 @@ public class BossEnemy : Enemy
     [SerializeField] private GameObject miniEnemy;
     [SerializeField] private GameObject usbPrefabs;
     [SerializeField] private GameObject bulletPrefabs;
-    private float defaultMaxHP;
 
     [Header("Teleport Skill")]
     [SerializeField] private float teleportTelegraphTime = 0.25f; // Thời gian đứng im vận chiêu trước khi dịch chuyển
@@ -23,15 +22,10 @@ public class BossEnemy : Enemy
     private bool isCastingSkill = false; // Boss đứng im khi đang vận chiêu (không di chuyển, không dùng chiêu khác)
     private GameObject activeTelegraph;
 
-    private void Awake()
-    {
-        defaultMaxHP = maxHP;
-    }
-
     protected override void OnEnable()
     {
-        maxHP = defaultMaxHP;
         isCastingSkill = false;
+        // base.OnEnable() tự tính maxHP = baseMaxHP * hệ số độ khó Stage (baseMaxHP được Die() cập nhật dần qua mỗi lần hồi sinh)
         base.OnEnable();
 
         if (GameManager.Instance != null && GameManager.Instance.currentLevel >= 15)
@@ -228,9 +222,9 @@ public class BossEnemy : Enemy
 
         DropItems();
 
-        // Chuẩn bị máu cho lần revive tiếp theo
-        maxHP *= 1.5f;
-        defaultMaxHP = maxHP; // Lưu lại để OnEnable không reset về giá trị cũ
+        // Chuẩn bị máu cho lần revive tiếp theo - nhân vào giá trị GỐC (trước hệ số độ khó Stage)
+        // để lần OnEnable sau tính lại đúng: maxHP = baseMaxHP (đã x1.5) * hệ số độ khó Stage
+        baseMaxHP *= 1.5f;
 
         // Tắt boss - GameManager sẽ bật lại khi Player nhặt USB
         gameObject.SetActive(false);

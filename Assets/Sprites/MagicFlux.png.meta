@@ -1,0 +1,806 @@
+fileFormatVersion: 2
+guid: 6c4561cf7ddaf434ba84d6e4a08bc003
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5572483569016695201
+    second: MagicFlux_0
+  - first:
+      213: 210661921467236374
+    second: MagicFlux_1
+  - first:
+      213: -3700254211469515170
+    second: MagicFlux_2
+  - first:
+      213: -7560050238690817462
+    second: MagicFlux_3
+  - first:
+      213: 7605292413560184180
+    second: MagicFlux_4
+  - first:
+      213: 1399328457462800973
+    second: MagicFlux_5
+  - first:
+      213: -7719544976718222182
+    second: MagicFlux_6
+  - first:
+      213: -7311126023106628066
+    second: MagicFlux_7
+  - first:
+      213: 2853578120715324167
+    second: MagicFlux_8
+  - first:
+      213: 2826561492288867569
+    second: MagicFlux_9
+  - first:
+      213: 464800203413509168
+    second: MagicFlux_10
+  - first:
+      213: 5129903835961696435
+    second: MagicFlux_11
+  - first:
+      213: -7476321873723081100
+    second: MagicFlux_12
+  - first:
+      213: -7311499514091298714
+    second: MagicFlux_13
+  - first:
+      213: -502777949078266130
+    second: MagicFlux_14
+  - first:
+      213: 1423452198143153425
+    second: MagicFlux_15
+  - first:
+      213: -5073113906049795254
+    second: MagicFlux_16
+  - first:
+      213: 7460992112422593167
+    second: MagicFlux_17
+  - first:
+      213: 165622428833890856
+    second: MagicFlux_18
+  - first:
+      213: 8870425213767999800
+    second: MagicFlux_19
+  - first:
+      213: -311791248183332306
+    second: MagicFlux_20
+  - first:
+      213: 486206408008912254
+    second: MagicFlux_21
+  - first:
+      213: -5195696309201799776
+    second: MagicFlux_22
+  - first:
+      213: -2732865436081117810
+    second: MagicFlux_23
+  - first:
+      213: -6168285590956322499
+    second: MagicFlux_24
+  - first:
+      213: 5827101605050245159
+    second: MagicFlux_25
+  - first:
+      213: -8404978839373035060
+    second: MagicFlux_26
+  - first:
+      213: -1160562744723811662
+    second: MagicFlux_27
+  - first:
+      213: -8256928620541241400
+    second: MagicFlux_28
+  - first:
+      213: 8348372302316677995
+    second: MagicFlux_29
+  - first:
+      213: 164004258107990674
+    second: MagicFlux_30
+  - first:
+      213: -7680757948883694882
+    second: MagicFlux_31
+  - first:
+      213: -4659667597207438824
+    second: MagicFlux_32
+  - first:
+      213: 7096788051371054781
+    second: MagicFlux_33
+  - first:
+      213: -8524170977683668887
+    second: MagicFlux_34
+  - first:
+      213: -8423342466277018049
+    second: MagicFlux_35
+  - first:
+      213: 5250366783309171481
+    second: MagicFlux_36
+  - first:
+      213: 3355126875259652174
+    second: MagicFlux_37
+  - first:
+      213: 4980298426744933108
+    second: MagicFlux_38
+  - first:
+      213: -4082842204949995589
+    second: MagicFlux_39
+  - first:
+      213: 2450158238404933516
+    second: MagicFlux_40
+  - first:
+      213: 7662739683780144836
+    second: MagicFlux_41
+  - first:
+      213: 3480038209453483253
+    second: MagicFlux_42
+  - first:
+      213: 9073222601334164690
+    second: MagicFlux_43
+  - first:
+      213: 3296122525902438704
+    second: MagicFlux_44
+  - first:
+      213: -5677187291950344096
+    second: MagicFlux_45
+  - first:
+      213: -7476212039991272983
+    second: MagicFlux_46
+  - first:
+      213: 8401040834184934185
+    second: MagicFlux_47
+  - first:
+      213: 1606929102318193123
+    second: MagicFlux_48
+  - first:
+      213: 918847910183395113
+    second: MagicFlux_49
+  - first:
+      213: 4945349858664678368
+    second: MagicFlux_50
+  - first:
+      213: -1538714247146864775
+    second: MagicFlux_51
+  - first:
+      213: 8053040924446499364
+    second: MagicFlux_52
+  - first:
+      213: -6857816694060660662
+    second: MagicFlux_53
+  - first:
+      213: -3491089335618176198
+    second: MagicFlux_54
+  - first:
+      213: -919822400201200770
+    second: MagicFlux_55
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: MagicFlux_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 500
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f561f00e7bf8aa2b0800000000000000
+      internalID: -5572483569016695201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_1
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 500
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61081c4c6eb6ce200800000000000000
+      internalID: 210661921467236374
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_2
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 500
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5667b2466e06acc0800000000000000
+      internalID: -3700254211469515170
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_3
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 500
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4a0abedc5e451790800000000000000
+      internalID: -7560050238690817462
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_4
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 500
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 47d5a33d72d6b8960800000000000000
+      internalID: 7605292413560184180
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_5
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 500
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d426a2f61d96b6310800000000000000
+      internalID: 1399328457462800973
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 400
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9c2f0b5ebaaed490800000000000000
+      internalID: -7719544976718222182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_7
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 400
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e167d943e99a98a90800000000000000
+      internalID: -7311126023106628066
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_8
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 400
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70b40109e22f99720800000000000000
+      internalID: 2853578120715324167
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_9
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 400
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1fc0da393b6f93720800000000000000
+      internalID: 2826561492288867569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_10
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 400
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 034ddf7825d437600800000000000000
+      internalID: 464800203413509168
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_11
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 400
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b029620c54113740800000000000000
+      internalID: 5129903835961696435
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 300
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 47eb04afdd4ce3890800000000000000
+      internalID: -7476321873723081100
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_13
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 300
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 660a52f0ee5588a90800000000000000
+      internalID: -7311499514091298714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_14
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 300
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eee5a408e16c509f0800000000000000
+      internalID: -502777949078266130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_15
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 300
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11552118b3e11c310800000000000000
+      internalID: 1423452198143153425
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_16
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 300
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4bbecce7cda899b0800000000000000
+      internalID: -5073113906049795254
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_17
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 300
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f82a0f4dbc4ca8760800000000000000
+      internalID: 7460992112422593167
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_18
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 200
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8224b75b8b86c4200800000000000000
+      internalID: 165622428833890856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_19
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 200
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8316f410cb41a1b70800000000000000
+      internalID: 8870425213767999800
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_20
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 200
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e22f4fff28b4cabf0800000000000000
+      internalID: -311791248183332306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MagicFlux_21
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 200
+        width: 100
+        height: 100
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7dc3ece62a5fb600800000000000000
+      internalID: 486206408008912254
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 7ce93ac31f49a4f48ab2669fd0410956
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":6.0,"y":6.0},"gridSpriteSize":{"x":100.0,"y":100.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      MagicFlux_0: -5572483569016695201
+      MagicFlux_1: 210661921467236374
+      MagicFlux_10: 464800203413509168
+      MagicFlux_11: 5129903835961696435
+      MagicFlux_12: -7476321873723081100
+      MagicFlux_13: -7311499514091298714
+      MagicFlux_14: -502777949078266130
+      MagicFlux_15: 1423452198143153425
+      MagicFlux_16: -5073113906049795254
+      MagicFlux_17: 7460992112422593167
+      MagicFlux_18: 165622428833890856
+      MagicFlux_19: 8870425213767999800
+      MagicFlux_2: -3700254211469515170
+      MagicFlux_20: -311791248183332306
+      MagicFlux_21: 486206408008912254
+      MagicFlux_3: -7560050238690817462
+      MagicFlux_4: 7605292413560184180
+      MagicFlux_5: 1399328457462800973
+      MagicFlux_6: -7719544976718222182
+      MagicFlux_7: -7311126023106628066
+      MagicFlux_8: 2853578120715324167
+      MagicFlux_9: 2826561492288867569
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

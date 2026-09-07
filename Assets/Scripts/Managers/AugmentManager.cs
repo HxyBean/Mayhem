@@ -47,22 +47,13 @@ public class AugmentManager : MonoBehaviour
 
     void InitializePool()
     {
-        // Các nâng cấp cơ bản (Cấp 1)
+        // Augment dùng chung cho MỌI nhân vật. Augment riêng theo súng/phép (Ammo, Regen, Reload, Bomb,
+        // BurstShot, SplitShot, Mana...) nằm trong CharacterData.exclusiveAugments, cộng vào qua ApplyCharacterData().
         augmentPool.Add(new Augment { name = "DAMAGE", description = "+2.5 Damage", type = "Damage", requiredLevel = 1 });
         augmentPool.Add(new Augment { name = "SPEED", description = "+10% Speed", type = "Speed", requiredLevel = 1 });
         augmentPool.Add(new Augment { name = "HEALTH", description = "+20 Max Health", type = "Health", requiredLevel = 1 });
-
-        // Các nâng cấp cao cấp (Chỉ xuất hiện khi đạt cấp độ cao)
-        augmentPool.Add(new Augment { name = "AMMO", description = "+10 Max Ammo", type = "Bullet", requiredLevel = 3 });
-        augmentPool.Add(new Augment { name = "REGEN", description = "+2 HP/second", type = "Regen", requiredLevel = 5 });
-        augmentPool.Add(new Augment { name = "RELOAD", description = "-0.5 Reload Time", type = "Reload", requiredLevel = 3 });
         augmentPool.Add(new Augment { name = "LIFE STEAL", description = "+5% Life Steal", type = "LifeSteal", requiredLevel = 5 });
         augmentPool.Add(new Augment { name = "EXP", description = "+20% XP Value", type = "Exp", requiredLevel = 1 });
-
-        // Lõi nâng cấp đặc biệt
-        augmentPool.Add(new Augment { name = "BOMB", description = "Gains Bomb\n Drag to throw (Cost: 10 ammo)", type = "Bomb", requiredLevel = 8 });
-        augmentPool.Add(new Augment { name = "BURST SHOT", description = "Shoots 3 bullets at once\n DMG each -20%", type = "BurstShot", requiredLevel = 10 });
-        augmentPool.Add(new Augment { name = "SPLIT SHOT", description = "Shoots 3 bullets at different angles\n DMG each -20%", type = "SplitShot", requiredLevel = 10 });
     }
 
     // Cộng thêm augment riêng của Stage được chọn vào pool chung. Gọi 1 lần khi GameManager bắt đầu ván chơi.
@@ -71,6 +62,17 @@ public class AugmentManager : MonoBehaviour
         if (stage == null) return;
 
         foreach (Augment extra in stage.extraAugments)
+        {
+            augmentPool.Add(extra);
+        }
+    }
+
+    // Cộng thêm augment riêng của nhân vật được chọn vào pool chung. Gọi 1 lần khi GameManager bắt đầu ván chơi.
+    public void ApplyCharacterData(CharacterData character)
+    {
+        if (character == null) return;
+
+        foreach (Augment extra in character.exclusiveAugments)
         {
             augmentPool.Add(extra);
         }
@@ -122,18 +124,23 @@ public class AugmentManager : MonoBehaviour
 
         currentOptions.Clear();
 
-        // 1. Xử lý ép buộc (Forced) cho Level 8 và Level 10
-        if (pLevel == 2)
+        // Các augment lõi đặc biệt này chỉ tồn tại trong pool nếu nhân vật hiện tại là Gunner
+        // (CharacterData.exclusiveAugments của Pháp sư không có). Vì vậy phải kiểm tra augment
+        // ép buộc có THỰC SỰ tồn tại trong pool không trước khi ép buộc - nếu không, các nhân vật
+        // không có lõi đó (VD Pháp sư) sẽ bị màn chọn augment trống ở đúng level ép buộc.
+        Augment bombAug = augmentPool.Find(a => a.type == "Bomb");
+        Augment burstAug = augmentPool.Find(a => a.type == "BurstShot");
+        Augment splitAug = augmentPool.Find(a => a.type == "SplitShot");
+
+        // 1. Xử lý ép buộc (Forced) cho Level 2 và Level 10
+        if (pLevel == 2 && bombAug != null)
         {
             // Bắt buộc chỉ xuất hiện lõi Bomb
-            Augment bombAug = augmentPool.Find(a => a.type == "Bomb");
-            if (bombAug != null) currentOptions.Add(bombAug);
+            currentOptions.Add(bombAug);
         }
-        else if (pLevel == 10)
+        else if (pLevel == 10 && (burstAug != null || splitAug != null))
         {
             // Bắt buộc chỉ xuất hiện BurstShot và SplitShot
-            Augment burstAug = augmentPool.Find(a => a.type == "BurstShot");
-            Augment splitAug = augmentPool.Find(a => a.type == "SplitShot");
             if (burstAug != null) currentOptions.Add(burstAug);
             if (splitAug != null) currentOptions.Add(splitAug);
         }
@@ -217,6 +224,13 @@ public class AugmentManager : MonoBehaviour
             Debug.Log("Đã chọn Bomb, xóa khỏi danh sách lựa chọn.");
         }
 
+        // Nếu chọn Potion -> Xóa khỏi pool
+        if (type == "Potion")
+        {
+            augmentPool.RemoveAll(a => a.type == "Potion");
+            Debug.Log("Đã chọn Potion, xóa khỏi danh sách lựa chọn.");
+        }
+
         // Chọn 1 trong 2 loại đạn đặc biệt → xóa CẢ 2 khỏi pool
         if (type == "BurstShot" || type == "SplitShot")
         {
@@ -262,6 +276,17 @@ public class AugmentManager : MonoBehaviour
                 break;
             case "Exp":
                 gameManager.AddExpBoost(0.2f); // Cộng thêm 20% mỗi lần chọn
+                break;
+
+            // === AUGMENT RIÊNG CỦA PHÁP SƯ ===
+            case "ManaRegen":
+                bullet.StartManaRegen(2f); // Hồi 2 mana mỗi giây
+                break;
+            case "BlinkCooldown":
+                player.ReduceBlinkCooldown(0.9f);
+                break;
+            case "Potion":
+                bullet.EnablePotion();
                 break;
 
             // === LÕI NÂNG CẤP ĐẶC BIỆT (LEVEL 10) ===
