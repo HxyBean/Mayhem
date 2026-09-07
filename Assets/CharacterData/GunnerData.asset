@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb5b46c5281f6e842918e28b0a0379ac, type: 3}
+  m_Name: GunnerData
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterData
+  characterName: Gunner
+  baseBulletDamage: 10
+  bulletPrefab: {fileID: 2284842994325187707, guid: a7ad01b9a9d9acd408921d3a9c5aeaf5, type: 3}
+  abilityType: 0
+  animatorController: {fileID: 0}
+  idleSprite: {fileID: 0}
+  weaponSprite: {fileID: 0}
+  shootSound: {fileID: 0}
+  reloadSound: {fileID: 0}
+  shootButtonIcon: {fileID: 6879118450950661895, guid: 64026ee043d43834a9256ed157b7d359, type: 3}
+  reloadButtonIcon: {fileID: 21300000, guid: fafc581c9a82dbe4b9c8a77e4311100e, type: 3}
+  exclusiveAugments:
+  - name: BULLET
+    description: +10 Ammo
+    type: Bullet
+    requiredLevel: 3
+  - name: REGEN
+    description: +1 HP/s
+    type: Regen
+    requiredLevel: 7
+  - name: BOMB
+    description: Gains a bomb, cost 10 ammo
+    type: Bomb
+    requiredLevel: 8
+  - name: SHOTGUN
+    description: Basic attack's turned to shotgun attack, has short range but deal
+      more damage (3 ammo each shoot)
+    type: BurstShot
+    requiredLevel: 10
+  - name: SPLITSHOT
+    description: Shoot 3 ammo instead 1 in different angle
+    type: SplitShot
+    requiredLevel: 10

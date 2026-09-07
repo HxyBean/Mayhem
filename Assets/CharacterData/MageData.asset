@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb5b46c5281f6e842918e28b0a0379ac, type: 3}
+  m_Name: MageData
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterData
+  characterName: Mage
+  baseBulletDamage: 7
+  bulletPrefab: {fileID: 4053862415160885024, guid: d347dba68c16e204f89c9fe694bf3a63, type: 3}
+  abilityType: 1
+  animatorController: {fileID: 22100000, guid: 3a317f53a320f874aaaee045aa549913, type: 2}
+  idleSprite: {fileID: 8693386815428402835, guid: b77d0509bf0ed104dbe032143b3d3d8a, type: 3}
+  weaponSprite: {fileID: 21300000, guid: 1a490bc202e865e45ab59b559efaaccc, type: 3}
+  shootSound: {fileID: 8300000, guid: 45f7220247e4c824c8ef55dc93cd98d9, type: 3}
+  reloadSound: {fileID: 8300000, guid: 14e2fff561eb88144a4a28e9de670393, type: 3}
+  shootButtonIcon: {fileID: 21300000, guid: 1a490bc202e865e45ab59b559efaaccc, type: 3}
+  reloadButtonIcon: {fileID: 21300000, guid: 95066051c2e217746ae2dc0a28c8d7dd, type: 3}
+  exclusiveAugments:
+  - name: POTION
+    description: Throw a potion, when it breaks, leaves a potion zone that slow and
+      deal DOT to enemy
+    type: Potion
+    requiredLevel: 7
+  - name: MANA REGEN
+    description: +2 mana/s
+    type: ManaRegen
+    requiredLevel: 5
+  - name: BLINK COOLDOWN
+    description: +10% Cooldown to BLINK
+    type: BlinkCooldonw
+    requiredLevel: 5

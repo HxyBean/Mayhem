@@ -46,6 +46,24 @@ public class Gun : MonoBehaviour
     [SerializeField] private GameObject bombButtonObj;    // Gán BombButton vào đây
     [SerializeField] private Image bombCooldownBar;       // Gán Overlay Cooldown của BombButton
 
+    [Header("Potion (Pháp sư)")]
+    [SerializeField] private GameObject potionPrefab;      // Kéo Prefab viên thuốc vào đây
+    private bool hasPotion = false;
+    [SerializeField] private float potionCooldown = 6f;
+    private bool isPotionOnCooldown = false;
+    [SerializeField] private GameObject potionButtonObj;   // Gán PotionButton vào đây
+    [SerializeField] private Image potionCooldownBar;      // Gán Overlay Cooldown của PotionButton
+
+    [Header("Character Visual/Audio Override")]
+    [Tooltip("SpriteRenderer của vũ khí (súng/gậy phép) - đổi hình theo nhân vật được chọn")]
+    [SerializeField] private SpriteRenderer weaponRenderer;
+    [Tooltip("Image của nút Bắn - đổi icon theo nhân vật được chọn")]
+    [SerializeField] private Image shootButtonImage;
+    [Tooltip("Image của nút Nạp đạn - đổi icon theo nhân vật được chọn")]
+    [SerializeField] private Image reloadButtonImage;
+    private AudioClip characterShootClip;  // null = dùng âm thanh mặc định của AudioManager (Gunner)
+    private AudioClip characterReloadClip; // null = dùng âm thanh mặc định của AudioManager (Gunner)
+
     private ContactFilter2D contactFilter;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -58,6 +76,7 @@ public class Gun : MonoBehaviour
         UpdateAmmoText();
         currentReloadTime = defaultReloadTime;
         if (bombButtonObj != null) bombButtonObj.SetActive(false);
+        if (potionButtonObj != null) potionButtonObj.SetActive(false);
     }
 
     // Update is called once per frame
@@ -78,6 +97,13 @@ public class Gun : MonoBehaviour
         {
             Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             ThrowBomb(mouseWorldPos);
+        }
+
+        // Ném bình thuốc bằng phím T (PC)
+        if (!isMobile && CanThrowPotion() && Input.GetKeyDown(KeyCode.T))
+        {
+            Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            ThrowPotion(mouseWorldPos);
         }
     }
 
@@ -192,7 +218,8 @@ public class Gun : MonoBehaviour
         }
 
         UpdateAmmoText();
-        audioManager.PlayShootSound();
+        if (characterShootClip != null) audioManager.PlaySFX(characterShootClip);
+        else audioManager.PlayShootSound();
     }
 
     /// <summary>
@@ -286,6 +313,38 @@ public class Gun : MonoBehaviour
         StartCoroutine(BombCooldownCoroutine());
     }
 
+    public bool CanThrowPotion()
+    {
+        return hasPotion && !isPotionOnCooldown && currentAmmo >= 5;
+    }
+
+    public void ThrowPotion(Vector3 targetPosition)
+    {
+        if (potionPrefab == null) return;
+
+        currentAmmo -= 10;
+        UpdateAmmoText();
+
+        GameObject potion;
+        if (ObjectPoolManager.Instance != null)
+        {
+            potion = ObjectPoolManager.Instance.SpawnObject(potionPrefab, transform.position, Quaternion.identity);
+        }
+        else
+        {
+            potion = Instantiate(potionPrefab, transform.position, Quaternion.identity);
+        }
+
+        Potion potionScript = potion.GetComponent<Potion>();
+        if (potionScript != null)
+        {
+            targetPosition.z = 0f;
+            potionScript.SetTarget(targetPosition);
+        }
+
+        StartCoroutine(PotionCooldownCoroutine());
+    }
+
     public void OnReloadButtonPressed()
     {
         if (currentAmmo < maxAmmo && !isReloading)
@@ -299,7 +358,8 @@ public class Gun : MonoBehaviour
         isReloading = true;
         Debug.Log("Đang nạp đạn...");
 
-        audioManager.PlayReloadSound();
+        if (characterReloadClip != null) audioManager.PlaySFX(characterReloadClip);
+        else audioManager.PlayReloadSound();
 
         float timer = 0f;
         if (reloadCooldownBar != null) reloadCooldownBar.fillAmount = 1f;
@@ -377,6 +437,39 @@ public class Gun : MonoBehaviour
         isBombOnCooldown = false;
     }
 
+    public void EnablePotion()
+    {
+        hasPotion = true;
+        isPotionOnCooldown = false;
+        if (potionButtonObj != null) potionButtonObj.SetActive(true); // Hiển thị nút Potion
+        Debug.Log("Đã mở khóa Ném Bình Thuốc!");
+    }
+
+    /// <summary>
+    /// Coroutine hồi chiêu Potion giống cơ chế Bomb
+    /// </summary>
+    private IEnumerator PotionCooldownCoroutine()
+    {
+        isPotionOnCooldown = true;
+
+        float timer = 0f;
+        if (potionCooldownBar != null) potionCooldownBar.fillAmount = 1f;
+
+        while (timer < potionCooldown)
+        {
+            timer += Time.deltaTime;
+            if (potionCooldownBar != null)
+            {
+                potionCooldownBar.fillAmount = 1f - (timer / potionCooldown);
+            }
+            yield return null;
+        }
+
+        // Hồi chiêu xong
+        if (potionCooldownBar != null) potionCooldownBar.fillAmount = 0f;
+        isPotionOnCooldown = false;
+    }
+
     public void AddAmmo(int amount)
     {
         maxAmmo += amount;
@@ -395,5 +488,51 @@ public class Gun : MonoBehaviour
     public int GetReloadAugmentCount()
     {
         return reloadAugmentCount;
+    }
+
+    // Gọi từ GameManager.Start() theo nhân vật đã chọn ở Character Select
+    public void ApplyCharacterData(CharacterData character)
+    {
+        if (character == null) return;
+
+        if (character.bulletPrefab != null) bulletPrefabs = character.bulletPrefab;
+        if (character.weaponSprite != null && weaponRenderer != null) weaponRenderer.sprite = character.weaponSprite;
+        if (character.shootButtonIcon != null && shootButtonImage != null) shootButtonImage.sprite = character.shootButtonIcon;
+        if (character.reloadButtonIcon != null && reloadButtonImage != null) reloadButtonImage.sprite = character.reloadButtonIcon;
+
+        characterShootClip = character.shootSound;
+        characterReloadClip = character.reloadSound;
+    }
+
+    private bool isManaRegenActive = false;
+    private float manaRegenPerSecond = 0f;
+
+    // Hồi dần Ammo/Mana theo thời gian - cơ chế mới, dùng cho augment "Mana Regen" của Pháp sư
+    public void StartManaRegen(float amountPerSecond)
+    {
+        if (!isManaRegenActive)
+        {
+            manaRegenPerSecond = amountPerSecond;
+            StartCoroutine(ManaRegenCoroutine());
+        }
+        else
+        {
+            manaRegenPerSecond += amountPerSecond; // Cộng dồn nếu chọn augment này nhiều lần
+        }
+    }
+
+    private IEnumerator ManaRegenCoroutine()
+    {
+        isManaRegenActive = true;
+        while (true)
+        {
+            yield return new WaitForSeconds(1f);
+
+            if (currentAmmo < maxAmmo && !isReloading)
+            {
+                currentAmmo = Mathf.Min(currentAmmo + Mathf.RoundToInt(manaRegenPerSecond), maxAmmo);
+                UpdateAmmoText();
+            }
+        }
     }
 }

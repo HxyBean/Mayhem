@@ -27,7 +27,7 @@ TagManager:
   - UI
   - 
   - 
-  - 
+  - Obstacle
   - 
   - 
   - 
@@ -99,12 +99,6 @@ TagManager:
     locked: 0
   - name: GameUI
     uniqueID: 2554026413
-    locked: 0
-  - name: DashBar
-    uniqueID: 750704567
-    locked: 0
-  - name: BombCoolDownBar
-    uniqueID: 2799644059
     locked: 0
   m_RenderingLayers:
   - Default
