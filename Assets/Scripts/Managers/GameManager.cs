@@ -98,8 +98,21 @@ public class GameManager : MonoBehaviour
         {
             if (Player.Instance != null) Player.Instance.ApplyCharacterData(currentCharacter);
 
+            bool isMelee = currentCharacter.combatType == CombatType.Melee;
+
             Gun gun = FindFirstObjectByType<Gun>();
-            if (gun != null) gun.ApplyCharacterData(currentCharacter);
+            if (gun != null)
+            {
+                gun.SetActive(!isMelee);
+                if (!isMelee) gun.ApplyCharacterData(currentCharacter);
+            }
+
+            KnightCombat knight = FindFirstObjectByType<KnightCombat>();
+            if (knight != null)
+            {
+                knight.SetActive(isMelee);
+                if (isMelee) knight.ApplyCharacterData(currentCharacter);
+            }
 
             if (AugmentManager.Instance != null) AugmentManager.Instance.ApplyCharacterData(currentCharacter);
         }

@@ -27,6 +27,11 @@ public class AugmentManager : MonoBehaviour
     private List<Augment> currentOptions = new List<Augment>();
     private CanvasGroup panelCanvasGroup;
 
+    // Augment "con" chỉ nên xuất hiện SAU KHI đã chọn 1 augment "cha" cụ thể (VD giảm cooldown Xoay Kiếm chỉ
+    // có ý nghĩa sau khi đã mở khóa Xoay Kiếm). Giữ tạm ở đây, KHÔNG cho vào augmentPool ngay từ đầu, chỉ thêm
+    // vào khi augment cha được chọn (xem CheckAndRemoveAugment).
+    private Augment pendingSwordSpinCooldownAugment;
+
     private void Awake()
     {
         Instance = this;
@@ -54,6 +59,7 @@ public class AugmentManager : MonoBehaviour
         augmentPool.Add(new Augment { name = "HEALTH", description = "+20 Max Health", type = "Health", requiredLevel = 1 });
         augmentPool.Add(new Augment { name = "LIFE STEAL", description = "+5% Life Steal", type = "LifeSteal", requiredLevel = 5 });
         augmentPool.Add(new Augment { name = "EXP", description = "+20% XP Value", type = "Exp", requiredLevel = 1 });
+        augmentPool.Add(new Augment { name = "MAGNET", description = "+1.5 Item Pickup Radius", type = "Magnet", requiredLevel = 4 });
     }
 
     // Cộng thêm augment riêng của Stage được chọn vào pool chung. Gọi 1 lần khi GameManager bắt đầu ván chơi.
@@ -74,6 +80,13 @@ public class AugmentManager : MonoBehaviour
 
         foreach (Augment extra in character.exclusiveAugments)
         {
+            // "SwordSpinCooldown" chỉ nên xuất hiện SAU KHI đã chọn "SwordSpin" - giữ lại, chưa cho vào pool vội
+            if (extra.type == "SwordSpinCooldown")
+            {
+                pendingSwordSpinCooldownAugment = extra;
+                continue;
+            }
+
             augmentPool.Add(extra);
         }
     }
@@ -132,8 +145,8 @@ public class AugmentManager : MonoBehaviour
         Augment burstAug = augmentPool.Find(a => a.type == "BurstShot");
         Augment splitAug = augmentPool.Find(a => a.type == "SplitShot");
 
-        // 1. Xử lý ép buộc (Forced) cho Level 2 và Level 10
-        if (pLevel == 2 && bombAug != null)
+        // 1. Xử lý ép buộc (Forced) cho Level 8 và Level 10
+        if (pLevel == 8 && bombAug != null)
         {
             // Bắt buộc chỉ xuất hiện lõi Bomb
             currentOptions.Add(bombAug);
@@ -205,6 +218,7 @@ public class AugmentManager : MonoBehaviour
     {
         Player player = Player.Instance;
         Gun bullet = Object.FindFirstObjectByType<Gun>();
+        KnightCombat knight = Object.FindFirstObjectByType<KnightCombat>();
         if (player == null) return;
 
         if (type == "Reload")
@@ -215,6 +229,41 @@ public class AugmentManager : MonoBehaviour
                 augmentPool.RemoveAll(a => a.type == "Reload");
                 Debug.Log("Đã xóa thẻ Thay đạn nhanh khỏi danh sách lựa chọn.");
             }
+        }
+
+        // Life Steal đạt trần 30% thì không xuất hiện nữa
+        if (type == "LifeSteal" && player.GetLifeStealPercent() >= 0.30f)
+        {
+            augmentPool.RemoveAll(a => a.type == "LifeSteal");
+            Debug.Log("Đã đạt tối đa Life Steal (30%), xóa khỏi danh sách lựa chọn.");
+        }
+
+        // Speed đạt trần +100% (tốc độ gấp đôi mốc gốc) thì không xuất hiện nữa
+        if (type == "Speed" && player.GetSpeedBonusPercent() >= 1f)
+        {
+            augmentPool.RemoveAll(a => a.type == "Speed");
+            Debug.Log("Đã đạt tối đa Speed (+100%), xóa khỏi danh sách lựa chọn.");
+        }
+
+        // Bán kính Hút Item đạt trần 4 thì không xuất hiện nữa
+        if (type == "Magnet" && player.GetMagnetRadius() >= 4f)
+        {
+            augmentPool.RemoveAll(a => a.type == "Magnet");
+            Debug.Log("Đã đạt tối đa bán kính Hút Item (4), xóa khỏi danh sách lựa chọn.");
+        }
+
+        // Mana Regen đạt trần 2/giây thì không xuất hiện nữa
+        if (type == "ManaRegen" && bullet.GetManaRegenPerSecond() >= 2f)
+        {
+            augmentPool.RemoveAll(a => a.type == "ManaRegen");
+            Debug.Log("Đã đạt tối đa Mana Regen (2/giây), xóa khỏi danh sách lựa chọn.");
+        }
+
+        // Tốc Độ Đánh đạt trần 0.5s/đòn thì không xuất hiện nữa
+        if (type == "AttackSpeed" && knight.GetAttackInterval() <= 0.5f)
+        {
+            augmentPool.RemoveAll(a => a.type == "AttackSpeed");
+            Debug.Log("Đã đạt tối đa Tốc Độ Đánh (0.5s/đòn), xóa khỏi danh sách lựa chọn.");
         }
 
         // Nếu chọn Bomb -> Xóa khỏi pool
@@ -231,6 +280,18 @@ public class AugmentManager : MonoBehaviour
             Debug.Log("Đã chọn Potion, xóa khỏi danh sách lựa chọn.");
         }
 
+        // Nếu chọn Xoay Kiếm -> Xóa khỏi pool + mở khóa thêm augment giảm cooldown của nó (nếu Knight có cấu hình)
+        if (type == "SwordSpin")
+        {
+            augmentPool.RemoveAll(a => a.type == "SwordSpin");
+            if (pendingSwordSpinCooldownAugment != null)
+            {
+                augmentPool.Add(pendingSwordSpinCooldownAugment);
+                pendingSwordSpinCooldownAugment = null;
+            }
+            Debug.Log("Đã chọn Xoay Kiếm, mở khóa augment giảm cooldown.");
+        }
+
         // Chọn 1 trong 2 loại đạn đặc biệt → xóa CẢ 2 khỏi pool
         if (type == "BurstShot" || type == "SplitShot")
         {
@@ -243,6 +304,7 @@ public class AugmentManager : MonoBehaviour
     {
         Player player = Player.Instance;
         Gun bullet = Object.FindFirstObjectByType<Gun>();
+        KnightCombat knight = Object.FindFirstObjectByType<KnightCombat>();
         GameManager gameManager = GameManager.Instance;
         GameUI ui = Object.FindFirstObjectByType<GameUI>();
         if (player == null) return;
@@ -277,16 +339,36 @@ public class AugmentManager : MonoBehaviour
             case "Exp":
                 gameManager.AddExpBoost(0.2f); // Cộng thêm 20% mỗi lần chọn
                 break;
+            case "Magnet":
+                player.IncreaseMagnetRadius(1.5f); // Cộng thêm 0.5 mỗi lần chọn, tối đa 4 (giới hạn ở CheckAndRemoveAugment)
+                break;
 
             // === AUGMENT RIÊNG CỦA PHÁP SƯ ===
             case "ManaRegen":
-                bullet.StartManaRegen(2f); // Hồi 2 mana mỗi giây
+                bullet.StartManaRegen(0.25f); // Hồi 0.25 mana mỗi giây, cộng dồn, tối đa 2/giây (giới hạn ở CheckAndRemoveAugment)
                 break;
             case "BlinkCooldown":
                 player.ReduceBlinkCooldown(0.9f);
                 break;
             case "Potion":
                 bullet.EnablePotion();
+                break;
+
+            // === AUGMENT RIÊNG CỦA KNIGHT ===
+            case "AttackSpeed":
+                knight.ReduceAttackInterval(0.1f); // Chém nhanh hơn 0.1s mỗi lần chọn
+                break;
+            case "StaminaRegen":
+                knight.IncreaseStaminaRegen(1f); // +1 Stamina/giây mỗi lần chọn
+                break;
+            case "ShieldCost":
+                knight.ReduceShieldCost(1f); // -1 Stamina/giây tiêu hao Khiên mỗi lần chọn
+                break;
+            case "SwordSpin":
+                knight.EnableSwordSpin();
+                break;
+            case "SwordSpinCooldown":
+                knight.ReduceSwordSpinCooldown(2f); // -2s cooldown mỗi lần chọn
                 break;
 
             // === LÕI NÂNG CẤP ĐẶC BIỆT (LEVEL 10) ===

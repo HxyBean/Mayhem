@@ -1,0 +1,367 @@
+fileFormatVersion: 2
+guid: 74b4629f73051404f9f01eeef875814f
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8001177981862706944
+    second: SwordAttack_0
+  - first:
+      213: 4647455399271330675
+    second: SwordAttack_1
+  - first:
+      213: 3035868469971643810
+    second: SwordAttack_2
+  - first:
+      213: 2790842327746732903
+    second: SwordAttack_3
+  - first:
+      213: -964228185870289256
+    second: SwordAttack_4
+  - first:
+      213: -9016818524022348350
+    second: SwordAttack_5
+  - first:
+      213: 850646091364326551
+    second: SwordAttack_6
+  - first:
+      213: -7647563080862656381
+    second: SwordAttack_7
+  - first:
+      213: 5835179148113148838
+    second: SwordAttack_8
+  - first:
+      213: 4624736087294567103
+    second: SwordAttack_9
+  - first:
+      213: 5038362558329010453
+    second: SwordAttack_10
+  - first:
+      213: 3169597950529953241
+    second: SwordAttack_11
+  - first:
+      213: -4265527687663569868
+    second: SwordAttack_12
+  - first:
+      213: 4185320103643025961
+    second: SwordAttack_13
+  - first:
+      213: -1759133413548214904
+    second: SwordAttack_14
+  - first:
+      213: -6806356633947712664
+    second: SwordAttack_15
+  - first:
+      213: -8484764660005047779
+    second: SwordAttack_16
+  - first:
+      213: 14555092659083222
+    second: SwordAttack_17
+  - first:
+      213: -2779394822933485821
+    second: SwordAttack_18
+  - first:
+      213: -3052822229482030700
+    second: SwordAttack_19
+  - first:
+      213: -8490670768335209688
+    second: SwordAttack_20
+  - first:
+      213: -4059356890967681506
+    second: SwordAttack_21
+  - first:
+      213: -8355788337091592869
+    second: SwordAttack_22
+  - first:
+      213: -2786546547323571936
+    second: SwordAttack_23
+  - first:
+      213: 8940122601183793144
+    second: SwordAttack_24
+  - first:
+      213: -468837004164370599
+    second: SwordAttack_25
+  - first:
+      213: 3299432261491316885
+    second: SwordAttack_26
+  - first:
+      213: -5459808939163482953
+    second: SwordAttack_27
+  - first:
+      213: -893754778243531140
+    second: SwordAttack_28
+  - first:
+      213: -8094105195636734450
+    second: SwordAttack_29
+  - first:
+      213: 6023043550250850479
+    second: SwordAttack_30
+  - first:
+      213: 517474975361383002
+    second: SwordAttack_31
+  - first:
+      213: -7969001666242814672
+    second: SwordAttack_32
+  - first:
+      213: 5125499386615320779
+    second: SwordAttack_33
+  - first:
+      213: -8373329381313671054
+    second: SwordAttack_34
+  - first:
+      213: -7797783986170292952
+    second: SwordAttack_35
+  - first:
+      213: -7626529906998251243
+    second: SwordAttack_36
+  - first:
+      213: -70842329664899193
+    second: SwordAttack_37
+  - first:
+      213: -3687938009251628430
+    second: SwordAttack_38
+  - first:
+      213: -4609160257377947386
+    second: SwordAttack_39
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 24
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SwordAttack_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00f7a918bf4e90f60800000000000000
+      internalID: 8001177981862706944
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SwordAttack_1
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 373f907ff041f7040800000000000000
+      internalID: 4647455399271330675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SwordAttack_2
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ade779e942912a20800000000000000
+      internalID: 3035868469971643810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SwordAttack_3
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 763e7718f401bb620800000000000000
+      internalID: 2790842327746732903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SwordAttack_4
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 89638cad29f5e92f0800000000000000
+      internalID: -964228185870289256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 848b0dd342590c24b95cb6a3294dbb92
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":5.0,"y":1.0},"gridSpriteSize":{"x":128.0,"y":128.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      SwordAttack_0: 8001177981862706944
+      SwordAttack_1: 4647455399271330675
+      SwordAttack_2: 3035868469971643810
+      SwordAttack_3: 2790842327746732903
+      SwordAttack_4: -964228185870289256
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

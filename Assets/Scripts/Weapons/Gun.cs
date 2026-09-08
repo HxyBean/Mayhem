@@ -61,6 +61,10 @@ public class Gun : MonoBehaviour
     [SerializeField] private Image shootButtonImage;
     [Tooltip("Image của nút Nạp đạn - đổi icon theo nhân vật được chọn")]
     [SerializeField] private Image reloadButtonImage;
+    [Tooltip("GameObject chứa nút Bắn - tự ẩn khi chọn nhân vật cận chiến (Knight)")]
+    [SerializeField] private GameObject shootButtonObj;
+    [Tooltip("GameObject chứa nút Nạp đạn - tự ẩn khi chọn nhân vật cận chiến (Knight)")]
+    [SerializeField] private GameObject reloadButtonObj;
     private AudioClip characterShootClip;  // null = dùng âm thanh mặc định của AudioManager (Gunner)
     private AudioClip characterReloadClip; // null = dùng âm thanh mặc định của AudioManager (Gunner)
 
@@ -289,7 +293,7 @@ public class Gun : MonoBehaviour
     public void ThrowBomb(Vector3 targetPosition)
     {
         if (bombPrefab == null) return;
-        
+
         currentAmmo -= 10;
         UpdateAmmoText();
 
@@ -490,6 +494,26 @@ public class Gun : MonoBehaviour
         return reloadAugmentCount;
     }
 
+    // Gọi từ GameManager.Start() - bật/tắt toàn bộ cơ chế bắn súng + nút Bắn/Nạp đạn tùy theo
+    // nhân vật đang chọn có phải Ranged (Gunner/Mage) hay không (Knight dùng KnightCombat thay thế)
+    public void SetActive(bool active)
+    {
+        enabled = active;
+        // Tắt Update() không tự ẩn sprite vũ khí (nó vẫn đứng yên và hiển thị) - phải ẩn riêng SpriteRenderer
+        if (weaponRenderer != null) weaponRenderer.enabled = active;
+        if (shootButtonObj != null) shootButtonObj.SetActive(active);
+        if (reloadButtonObj != null) reloadButtonObj.SetActive(active);
+
+        // Nếu Gun bị tắt NGAY từ đầu (VD chọn Knight), Start() của Gun sẽ không bao giờ tự chạy
+        // (Unity chỉ gọi Start() khi component đang bật) - nên không thể trông cậy vào dòng
+        // "bombButtonObj.SetActive(false)" trong Start() để ẩn 2 nút này, phải tự ẩn ở đây luôn.
+        if (!active)
+        {
+            if (bombButtonObj != null) bombButtonObj.SetActive(false);
+            if (potionButtonObj != null) potionButtonObj.SetActive(false);
+        }
+    }
+
     // Gọi từ GameManager.Start() theo nhân vật đã chọn ở Character Select
     public void ApplyCharacterData(CharacterData character)
     {
@@ -506,6 +530,7 @@ public class Gun : MonoBehaviour
 
     private bool isManaRegenActive = false;
     private float manaRegenPerSecond = 0f;
+    private float manaRegenAccumulator = 0f; // Gom phần lẻ (VD 0.25/s) qua nhiều giây tới khi đủ 1 đơn vị nguyên mới cộng vào currentAmmo (số nguyên)
 
     // Hồi dần Ammo/Mana theo thời gian - cơ chế mới, dùng cho augment "Mana Regen" của Pháp sư
     public void StartManaRegen(float amountPerSecond)
@@ -521,6 +546,8 @@ public class Gun : MonoBehaviour
         }
     }
 
+    public float GetManaRegenPerSecond() => manaRegenPerSecond;
+
     private IEnumerator ManaRegenCoroutine()
     {
         isManaRegenActive = true;
@@ -530,8 +557,15 @@ public class Gun : MonoBehaviour
 
             if (currentAmmo < maxAmmo && !isReloading)
             {
-                currentAmmo = Mathf.Min(currentAmmo + Mathf.RoundToInt(manaRegenPerSecond), maxAmmo);
-                UpdateAmmoText();
+                // manaRegenPerSecond có thể là số lẻ (VD 0.25) - gom dần qua nhiều giây, đủ 1 đơn vị nguyên mới cộng vào currentAmmo
+                manaRegenAccumulator += manaRegenPerSecond;
+                int wholeAmount = Mathf.FloorToInt(manaRegenAccumulator);
+                if (wholeAmount > 0)
+                {
+                    manaRegenAccumulator -= wholeAmount;
+                    currentAmmo = Mathf.Min(currentAmmo + wholeAmount, maxAmmo);
+                    UpdateAmmoText();
+                }
             }
         }
     }

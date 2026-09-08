@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 211493097676205105}
   - component: {fileID: 7499137684569125089}
   - component: {fileID: 4290141120749719744}
+  - component: {fileID: 4445656172283503054}
   m_Layer: 0
   m_Name: exp_big
   m_TagString: ExpBig
@@ -80,7 +81,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -2099618307
-  m_SortingLayer: 6
+  m_SortingLayer: 7
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 8711923172065068916, guid: 94b931e27e5ad5447833c6220fc3dbf9, type: 3}
@@ -141,4 +142,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00183195d03223f4ebb1ac65245251a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AutoDestroyOrPool
-  lifetime: 5
+  lifetime: 9999
+--- !u!114 &4445656172283503054
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 163816464090496648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d749b5e61014206408d8ded7c8b13825, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Pickup
+  magnetSpeed: 8
