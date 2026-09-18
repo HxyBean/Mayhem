@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: KnightData
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterName: Knight
-  baseBulletDamage: 15
-  baseMaxHP: 200
+  unlockedByDefault: 0
+  coinPrice: 500
+  diamondPrice: 5
+  baseBulletDamage: 30
+  baseMaxHP: 250
   baseMoveSpeed: 6
   combatType: 1
   bulletPrefab: {fileID: 0}

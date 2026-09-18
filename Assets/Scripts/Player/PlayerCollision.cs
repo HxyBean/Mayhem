@@ -49,6 +49,13 @@ public class PlayerCollision : MonoBehaviour
             ReturnToPoolOrDestroy(collision.gameObject);
             if (audioManager != null) audioManager.PlayEnergySound();
         }
+        else if (collision.CompareTag("Coin") || collision.CompareTag("Diamond"))
+        {
+            CurrencyPickup currency = collision.GetComponent<CurrencyPickup>();
+            if (currency != null) currency.Collect();
+            ReturnToPoolOrDestroy(collision.gameObject);
+            if (audioManager != null) audioManager.PlayEnergySound();
+        }
         else if (collision.CompareTag("ExpBoss"))
         {
             if (GameManager.Instance != null) GameManager.Instance.AddXP(50); // Viên boss cộng 50 XP

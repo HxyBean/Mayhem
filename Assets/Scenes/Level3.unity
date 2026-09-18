@@ -2985,7 +2985,7 @@ MonoBehaviour:
   cam: {fileID: 453163849}
   audioManager: {fileID: 1399052380}
   mainMenuSceneName: MainMenu
-  debugStage: {fileID: 0}
+  debugStage: {fileID: 11400000, guid: ae304ec0b4ee440458e8c31f3cdc0464, type: 2}
   debugCharacter: {fileID: 11400000, guid: d7d9ff020ae11b24f8334258724b2e78, type: 2}
 --- !u!4 &550357923
 Transform:
@@ -213361,9 +213361,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   enemyMoveSpeed: 1
-  maxHP: 1500
+  maxHP: 1200
   enterDmg: 10
   stayDmg: 0
+  stayDmgInterval: 1
   hpBar: {fileID: 651035827}
   xpObject: {fileID: 3041568760084445096, guid: 6e552aaccfdb62b4793cb22858b08243, type: 3}
   bigXpObject: {fileID: 163816464090496648, guid: a8562d7a93ebabd43b6296c2d79afdc6, type: 3}

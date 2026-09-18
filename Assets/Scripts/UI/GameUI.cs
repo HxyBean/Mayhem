@@ -28,10 +28,28 @@ public class GameUI : MonoBehaviour
         gameManager.ResumeGame();
     }
 
-    // Nút "Back to Menu" trên Pause/GameOver/Win panel — quay về Scene MainMenu (Stage vừa chơi đã unlock/lock đúng)
+    // Nút "Back to Menu" trên GameOver/Win panel — lúc này tiền của ván đã được cộng vào tổng rồi nên thoát thẳng
     public void MainMenu()
     {
         gameManager.BackToMainMenu();
+    }
+
+    // Nút "Thoát" trên PAUSE panel — hiện modal cảnh báo mất tiền thay vì thoát ngay
+    public void ExitFromPause()
+    {
+        gameManager.ShowExitConfirm();
+    }
+
+    // Nút "No/Cancel" trên modal cảnh báo
+    public void CancelExit()
+    {
+        gameManager.CancelExitConfirm();
+    }
+
+    // Nút "Yes" trên modal cảnh báo — chấp nhận mất toàn bộ coin/kim cương nhặt được trong ván này
+    public void ConfirmExit()
+    {
+        gameManager.ConfirmExitToMainMenu();
     }
     public void UpdateDmgText()
     {

@@ -24,6 +24,8 @@ public class GameManager : MonoBehaviour
     [Header("In-Game UI")]
     [SerializeField] private Image energyBar;
     [SerializeField] private Image usbBar;
+    [Tooltip("GameObject bao ngoài thanh USB (cả khung/icon) - tự ẩn khi Boss chưa xuất hiện. Để trống = ẩn/hiện luôn GameObject của Usb Bar")]
+    [SerializeField] private GameObject usbBarGroup;
     [SerializeField] private Image xpBar;
     [SerializeField] private TextMeshProUGUI levelText;
 
@@ -31,6 +33,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject gameOverMenu;
     [SerializeField] private GameObject pauseMenu;
     [SerializeField] private GameObject winMenu;
+    [Tooltip("Modal cảnh báo khi bấm Thoát ở màn Pause (thoát giữa chừng sẽ mất sạch coin/kim cương của ván này)")]
+    [SerializeField] private GameObject exitConfirmPanel;
 
     [Header("Camera & Audio")]
     [SerializeField] private CinemachineCamera cam;
@@ -53,6 +57,17 @@ public class GameManager : MonoBehaviour
     public StageData CurrentStage => currentStage;
     public bool IsBossCalled { get; private set; } = false;
 
+    // Tiền tệ nhặt được TRONG VÁN NÀY - chưa cộng vào tổng đã lưu cho tới khi ván kết thúc hợp lệ (thắng hoặc
+    // chết). Thoát giữa chừng ở màn Pause thì mất trắng, nên mới cần modal cảnh báo exitConfirmPanel.
+    private int runCoin = 0;
+    private int runDiamond = 0;
+    private bool runCurrencyCommitted = false;
+    public int RunCoin => runCoin;
+    public int RunDiamond => runDiamond;
+
+    // Bắn ra mỗi khi nhặt được coin/kim cương trong ván, để CurrencyUI (chế độ This Run) tự cập nhật
+    public static event System.Action OnRunCurrencyChanged;
+
     // ==============================================
     // UNITY CALLBACKS
     // ==============================================
@@ -74,9 +89,13 @@ public class GameManager : MonoBehaviour
         currentUSB = 0;
         currentXP = 0f;
         IsBossCalled = false;
+        runCoin = 0;
+        runDiamond = 0;
+        runCurrencyCommitted = false;
 
         boss.SetActive(false);
         enemySpawner.SetActive(true);
+        SetUsbBarVisible(false); // Chưa gọi được Boss thì thanh USB chưa có ý nghĩa gì, ẩn đi cho gọn HUD
 
         UpdateEnergyBar();
         UpdateUsbBar();
@@ -124,10 +143,30 @@ public class GameManager : MonoBehaviour
     // ==============================================
     // GAME STATE & MENU MANAGEMENT
     // ==============================================
+    // Nút "Back to Menu" trên Win/GameOver panel - lúc này tiền của ván đã được cộng vào tổng rồi (CommitRunCurrency)
     public void BackToMainMenu()
     {
         Time.timeScale = 1f;
+        GameProgress.SaveNow();
         SceneManager.LoadScene(mainMenuSceneName);
+    }
+
+    // Nút "Thoát" trên Pause panel - cảnh báo trước thay vì thoát ngay, vì bỏ dở ván sẽ mất sạch tiền đã nhặt
+    public void ShowExitConfirm()
+    {
+        if (exitConfirmPanel != null) exitConfirmPanel.SetActive(true);
+    }
+
+    public void CancelExitConfirm()
+    {
+        if (exitConfirmPanel != null) exitConfirmPanel.SetActive(false);
+    }
+
+    // Nút "Yes" trên modal cảnh báo - cố tình KHÔNG gọi CommitRunCurrency() nên toàn bộ coin/kim cương nhặt
+    // được trong ván này bị bỏ đi, đúng như lời cảnh báo.
+    public void ConfirmExitToMainMenu()
+    {
+        BackToMainMenu();
     }
 
     public void PauseMenu()
@@ -144,6 +183,7 @@ public class GameManager : MonoBehaviour
 
     public void GameOverMenu()
     {
+        CommitRunCurrency(); // Chết vẫn được giữ tiền đã nhặt, chỉ thoát giữa chừng mới mất
         SetActiveMenu(gameOverMenu);
         Time.timeScale = 0f;
     }
@@ -156,6 +196,8 @@ public class GameManager : MonoBehaviour
             GameProgress.CompleteStage(currentStage.stageIndex);
         }
 
+        CommitRunCurrency();
+
         SetActiveMenu(winMenu);
         Time.timeScale = 0f;
     }
@@ -165,6 +207,9 @@ public class GameManager : MonoBehaviour
         if (gameOverMenu != null) gameOverMenu.SetActive(gameOverMenu == activeMenu);
         if (pauseMenu != null) pauseMenu.SetActive(pauseMenu == activeMenu);
         if (winMenu != null) winMenu.SetActive(winMenu == activeMenu);
+
+        // Modal cảnh báo thoát luôn đóng khi chuyển menu, để lần Pause sau không thấy nó hiện sẵn
+        if (exitConfirmPanel != null) exitConfirmPanel.SetActive(false);
     }
 
     // ==============================================
@@ -173,10 +218,10 @@ public class GameManager : MonoBehaviour
     public void AddEnergy()
     {
         if (IsBossCalled) return;
-        
+
         currentEnergy += 1;
         UpdateEnergyBar();
-        
+
         if (currentEnergy >= energyThreshold)
         {
             CallBoss();
@@ -187,7 +232,7 @@ public class GameManager : MonoBehaviour
     {
         currentUSB += 1;
         UpdateUsbBar();
-        
+
         if (Player.Instance != null)
         {
             Player.Instance.RestoreFullHP();
@@ -232,7 +277,7 @@ public class GameManager : MonoBehaviour
     {
         currentLevel++;
         currentXP -= xpToLevelUp;
-        xpToLevelUp *= 1.25f; // Tăng yêu cầu XP cho cấp sau
+        xpToLevelUp *= 1.15f; // Tăng yêu cầu XP cho cấp sau
 
         UpdateXPBar();
         UpdateLevelText();
@@ -260,9 +305,71 @@ public class GameManager : MonoBehaviour
     private void CallBoss()
     {
         IsBossCalled = true;
+        SetUsbBarVisible(true); // Boss xuất hiện thì thanh USB mới có ý nghĩa, hiện lại cho người chơi theo dõi
         boss.SetActive(true);
         cam.Lens.OrthographicSize = 8f;
         audioManager.PlayBossAudio();
+    }
+
+    // ==============================================
+    // KIM CƯƠNG (phần thưởng phá đảo lần đầu)
+    // ==============================================
+    // Boss sắp bị hạ có phải lần CUỐI trong ván không: viên USB rơi ra lần này nhặt vào sẽ đủ ngưỡng thắng.
+    // VD usbThreshold = 3: lần chết 1 (currentUSB=0) và 2 (=1) đều false, chỉ lần 3 (=2) mới true.
+    private bool IsFinalBossKill()
+    {
+        return currentUSB + 1 >= usbThreshold;
+    }
+
+    // Kim cương CHỈ rơi khi: đây là lần hạ Boss cuối cùng của ván VÀ đây là lần đầu phá đảo Stage này
+    // (chưa từng thắng, và cũng chưa từng nhặt kim cương của Stage này ở lần chơi trước đó).
+    public bool ShouldDropDiamond()
+    {
+        if (currentStage == null) return false;
+        if (!IsFinalBossKill()) return false;
+        if (GameProgress.IsStageCompleted(currentStage.stageIndex)) return false;
+
+        return !GameProgress.IsStageDiamondClaimed(currentStage.stageIndex);
+    }
+
+    // ==============================================
+    // TIỀN TỆ NHẶT TRONG VÁN
+    // ==============================================
+    // Gọi từ CurrencyPickup khi Player nhặt được vật phẩm tiền tệ
+    public void AddRunCoin(int amount)
+    {
+        if (amount <= 0) return;
+
+        runCoin += amount;
+        OnRunCurrencyChanged?.Invoke();
+    }
+
+    public void AddRunDiamond(int amount)
+    {
+        if (amount <= 0) return;
+
+        runDiamond += amount;
+        OnRunCurrencyChanged?.Invoke();
+    }
+
+    // Cộng tiền nhặt trong ván vào tổng đã lưu. CHỈ gọi khi ván kết thúc hợp lệ (thắng hoặc chết) - thoát giữa
+    // chừng thì cố tình KHÔNG gọi, người chơi mất trắng số tiền của ván đó.
+    private void CommitRunCurrency()
+    {
+        if (runCurrencyCommitted) return;
+        runCurrencyCommitted = true;
+
+        GameProgress.AddCoin(runCoin);
+        GameProgress.AddDiamond(runDiamond);
+
+        // Đánh dấu đã nhận kim cương của Stage tại ĐÂY (lúc cộng vào tổng) chứ không phải lúc nhặt: nếu đánh
+        // dấu ngay lúc nhặt mà người chơi thoát giữa chừng thì kim cương vừa bị mất, vừa không bao giờ rơi lại.
+        if (runDiamond > 0 && currentStage != null)
+        {
+            GameProgress.MarkStageDiamondClaimed(currentStage.stageIndex);
+        }
+
+        GameProgress.SaveNow();
     }
 
     public void OnBossDefeated()
@@ -296,6 +403,14 @@ public class GameManager : MonoBehaviour
     // ==============================================
     // UI UPDATER HELPERS
     // ==============================================
+    // Ưu tiên ẩn/hiện GameObject bao ngoài (khung + icon); nếu không gán thì ẩn/hiện chính Image thanh USB.
+    // fillAmount vẫn cập nhật bình thường kể cả lúc đang ẩn, nên khi hiện lại là đã đúng số liệu.
+    private void SetUsbBarVisible(bool visible)
+    {
+        GameObject target = usbBarGroup != null ? usbBarGroup : (usbBar != null ? usbBar.gameObject : null);
+        if (target != null) target.SetActive(visible);
+    }
+
     private void UpdateUsbBar()
     {
         if (usbBar != null)

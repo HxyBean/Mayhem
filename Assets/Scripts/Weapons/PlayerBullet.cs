@@ -109,7 +109,11 @@ public class PlayerBullet : MonoBehaviour
     // Gây thêm sát thương lan cho các Enemy khác quanh mục tiêu trúng trực tiếp (đạn Pháp sư)
     private void ApplySplashDamage(Enemy directHitEnemy)
     {
-        float splashDmg = dmg * splashDamagePercent;
+        // splashDamagePercent là % GỐC cấu hình sẵn trên prefab; cộng thêm phần % augment (lưu bền vững ở
+        // Player, không phải trên chính instance đạn này) để không bị mất tác dụng khi đạn được tái sử dụng từ Pool.
+        float splashBonus = (Player.Instance != null) ? Player.Instance.GetSplashDamageBonus() : 0f;
+        float effectivePercent = splashDamagePercent + splashBonus;
+        float splashDmg = dmg * effectivePercent;
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, splashRadius);
 
         foreach (Collider2D hit in hitColliders)
