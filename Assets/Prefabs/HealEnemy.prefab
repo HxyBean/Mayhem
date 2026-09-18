@@ -184,10 +184,12 @@ MonoBehaviour:
   enemyMoveSpeed: 1.5
   maxHP: 70
   enterDmg: 5
-  stayDmg: 0.1
+  stayDmg: 1
+  stayDmgInterval: 0.25
   hpBar: {fileID: 4951780612100083296}
   xpObject: {fileID: 5274204108618876423, guid: b4b3cda023f9fcd4ba2e797027e56368, type: 3}
   bigXpObject: {fileID: 163816464090496648, guid: a8562d7a93ebabd43b6296c2d79afdc6, type: 3}
+  coinObject: {fileID: 8955785383546072880, guid: 0faa1ad8d99bf164c81907b29275cc25, type: 3}
   healValue: 20
   heartPrefab: {fileID: 7871176844099918519, guid: 8b48f16bdf609b64fb3e426c4eaf7088, type: 3}
 --- !u!95 &1485691802334578016

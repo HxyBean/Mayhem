@@ -13,9 +13,12 @@ MonoBehaviour:
   m_Name: GunnerData
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterName: Gunner
+  unlockedByDefault: 1
+  coinPrice: 100
+  diamondPrice: 5
   baseBulletDamage: 10
   baseMaxHP: 100
-  baseMoveSpeed: 5
+  baseMoveSpeed: 4
   combatType: 0
   bulletPrefab: {fileID: 2284842994325187707, guid: a7ad01b9a9d9acd408921d3a9c5aeaf5, type: 3}
   abilityType: 0

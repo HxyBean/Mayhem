@@ -207,9 +207,11 @@ MonoBehaviour:
   maxHP: 30
   enterDmg: 10
   stayDmg: 0
+  stayDmgInterval: 1
   hpBar: {fileID: 698130919731001067}
   xpObject: {fileID: 5274204108618876423, guid: b4b3cda023f9fcd4ba2e797027e56368, type: 3}
   bigXpObject: {fileID: 163816464090496648, guid: a8562d7a93ebabd43b6296c2d79afdc6, type: 3}
+  coinObject: {fileID: 8955785383546072880, guid: 0faa1ad8d99bf164c81907b29275cc25, type: 3}
   explosionObject: {fileID: 6793335813140051403, guid: 412fc85a645a82043aa64b7fdad77184, type: 3}
 --- !u!1001 &326318641730744522
 PrefabInstance:

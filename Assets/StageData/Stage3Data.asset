@@ -18,4 +18,8 @@ MonoBehaviour:
   enemyHpMultiplier: 2
   enemyDamageMultiplier: 1.6
   enemySpeedMultiplier: 1.1
-  extraAugments: []
+  extraAugments:
+  - name: PercentDamage
+    description: +10% Damage
+    type: PercentDamage
+    requiredLevel: 10

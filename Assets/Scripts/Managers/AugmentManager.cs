@@ -344,6 +344,9 @@ public class AugmentManager : MonoBehaviour
                 break;
 
             // === AUGMENT RIÊNG CỦA PHÁP SƯ ===
+            case "SplashDamage":
+                player.IncreaseSplashDamagePercent(0.1f); // +10% sát thương lan mỗi lần chọn (lưu bền vững ở Player, không phải trên đạn đã pool)
+                break;
             case "ManaRegen":
                 bullet.StartManaRegen(0.25f); // Hồi 0.25 mana mỗi giây, cộng dồn, tối đa 2/giây (giới hạn ở CheckAndRemoveAugment)
                 break;
@@ -381,7 +384,11 @@ public class AugmentManager : MonoBehaviour
             case "Bomb":
                 bullet.EnableBomb();
                 break;
-                
+            // === LÕI STAGE 2-3 ===
+            case "PercentDamage":
+                player.IncreaseDamagePercent(1.2f); // Nhân dồn +20% sát thương mỗi lần chọn
+                ui.UpdateDmgText();
+                break;
         }
     }
 }

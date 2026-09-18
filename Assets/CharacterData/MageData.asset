@@ -13,7 +13,10 @@ MonoBehaviour:
   m_Name: MageData
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterName: Mage
-  baseBulletDamage: 7
+  unlockedByDefault: 0
+  coinPrice: 500
+  diamondPrice: 5
+  baseBulletDamage: 12
   baseMaxHP: 100
   baseMoveSpeed: 5
   combatType: 0
@@ -39,4 +42,8 @@ MonoBehaviour:
   - name: BLINK COOLDOWN
     description: +10% Cooldown to BLINK
     type: BlinkCooldonw
+    requiredLevel: 5
+  - name: SPLASH DAMAGE
+    description: +10% Splash damage
+    type: SplashDamage
     requiredLevel: 5

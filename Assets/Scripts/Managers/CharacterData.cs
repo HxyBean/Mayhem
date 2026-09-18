@@ -19,7 +19,19 @@ public enum CombatType
 [CreateAssetMenu(fileName = "CharacterData", menuName = "Mayhem/Character Data")]
 public class CharacterData : ScriptableObject
 {
+    [Tooltip("Tên nhân vật. LƯU Ý: tên này còn được dùng làm khóa lưu trạng thái đã mở khóa - đổi tên sau khi " +
+             "người chơi đã mua sẽ làm mất trạng thái đã mua của họ. Mỗi nhân vật phải có tên khác nhau.")]
     public string characterName = "Gunner";
+
+    [Header("Mở khóa nhân vật")]
+    [Tooltip("Nhân vật khởi đầu, luôn mở sẵn và không cần mua (chỉ tick cho Gunner)")]
+    public bool unlockedByDefault = false;
+
+    [Tooltip("Giá mở khóa bằng Coin. Để 0 (hoặc nhỏ hơn) = KHÔNG cho mua bằng Coin, nút Coin sẽ bị ẩn đi")]
+    public int coinPrice = 100;
+
+    [Tooltip("Giá mở khóa bằng Kim cương. Để 0 (hoặc nhỏ hơn) = KHÔNG cho mua bằng Kim cương, nút Kim cương sẽ bị ẩn đi")]
+    public int diamondPrice = 5;
 
     [Header("Chỉ số cơ bản")]
     [Tooltip("Sát thương gốc mặc định của nhân vật này (đạn với Gunner/Mage, đòn chém với Knight)")]

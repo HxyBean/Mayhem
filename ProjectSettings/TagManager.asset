@@ -18,6 +18,8 @@ TagManager:
   - ExpBoss
   - Bomb
   - Heart
+  - Coin
+  - Diamond
   layers:
   - Default
   - TransparentFX

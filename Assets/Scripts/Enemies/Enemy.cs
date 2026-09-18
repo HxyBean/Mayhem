@@ -8,10 +8,15 @@ public abstract class Enemy : MonoBehaviour
     [SerializeField] protected float maxHP = 50f;
     [SerializeField] protected float enterDmg = 10f;
     [SerializeField] protected float stayDmg = 1f;
+    [Tooltip("Khoảng cách giữa 2 lần gây stayDmg khi Player đứng chạm (giây). BẮT BUỘC có field này vì OnTriggerStay2D chạy theo nhịp vật lý (~50 lần/giây), không giới hạn lại thì stayDmg sẽ bị áp ~50 lần/giây thay vì đúng nghĩa 'mỗi giây'.")]
+    [SerializeField] protected float stayDmgInterval = 1f;
+    private float stayDmgTimer = 0f;
     protected float currentHP;
     [SerializeField] private Image hpBar;
     [SerializeField] protected GameObject xpObject;
     [SerializeField] protected GameObject bigXpObject;
+    [Tooltip("Prefab Coin rơi ra khi chết (mỗi con rơi đúng 1 coin). Để trống nếu muốn loại quái này KHÔNG rơi coin.")]
+    [SerializeField] protected GameObject coinObject;
     protected bool isDead = false;
 
     // Hiệu ứng làm chậm (VD PotionZone). speedMultiplier = 1 nghĩa là tốc độ bình thường.
@@ -29,6 +34,11 @@ public abstract class Enemy : MonoBehaviour
 
     protected virtual void Awake()
     {
+        // Rigidbody2D tự "ngủ" khi đứng yên đủ lâu (VD Enemy đã đuổi kịp Player rồi dừng lại), lúc đó
+        // OnTriggerStay2D ngừng bắn dù vẫn đang chạm nhau. Ép không bao giờ ngủ để stayDmg luôn hoạt động đúng.
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null) rb.sleepMode = RigidbodySleepMode2D.NeverSleep;
+
         if (statsCaptured) return;
 
         baseMoveSpeed = enemyMoveSpeed;
@@ -47,6 +57,7 @@ public abstract class Enemy : MonoBehaviour
         isDead = false;
         speedMultiplier = 1f;
         slowStackCount = 0;
+        stayDmgTimer = 0f;
         UpdateHPBar();
     }
 
@@ -96,6 +107,12 @@ public abstract class Enemy : MonoBehaviour
 
     protected virtual void OnPlayerStay(Collider2D collision)
     {
+        // OnTriggerStay2D (nơi gọi hàm này) chạy theo nhịp vật lý (~50 lần/giây) - phải tự giới hạn
+        // lại đúng khoảng stayDmgInterval, không thì stayDmg sẽ bị cộng dồn ~50 lần mỗi giây.
+        stayDmgTimer += Time.deltaTime;
+        if (stayDmgTimer < stayDmgInterval) return;
+
+        stayDmgTimer = 0f;
         player.TakeDmg(stayDmg);
     }
     protected void MoveToPlayer()
@@ -177,12 +194,21 @@ public abstract class Enemy : MonoBehaviour
         }
     }
 
+    // Mọi Enemy thường đều rơi đúng 1 coin. Đặt ở Die() chứ KHÔNG gộp vào DropItems() vì các subclass override
+    // trọn vẹn DropItems() (MiniEnemy/EnergyEnemy/ExplosionEnemy...) sẽ làm mất coin nếu quên gọi base.
+    // BossEnemy override luôn cả Die() nên tự động không rơi coin - Boss rơi kim cương theo cơ chế riêng.
+    protected void DropCoin()
+    {
+        if (coinObject != null) SpawnItem(coinObject);
+    }
+
     protected virtual void Die()
     {
         if (isDead) return;
         isDead = true;
 
         DropItems();
+        DropCoin();
         if (ObjectPoolManager.Instance != null)
         {
             ObjectPoolManager.Instance.ReturnObjectToPool(gameObject);

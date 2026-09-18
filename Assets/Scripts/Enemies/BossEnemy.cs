@@ -14,6 +14,8 @@ public class BossEnemy : Enemy
     [SerializeField] private GameObject miniEnemy;
     [SerializeField] private GameObject usbPrefabs;
     [SerializeField] private GameObject bulletPrefabs;
+    [Tooltip("Prefab Kim cương - chỉ rơi ở lần hạ gục CUỐI CÙNG và CHỈ trong lần đầu phá đảo Stage này (xem GameManager.ShouldDropDiamond)")]
+    [SerializeField] private GameObject diamondPrefabs;
 
     [Header("Teleport Skill")]
     [SerializeField] private float teleportTelegraphTime = 0.25f; // Thời gian đứng im vận chiêu trước khi dịch chuyển
@@ -213,6 +215,13 @@ public class BossEnemy : Enemy
     {
         if (usbPrefabs != null) SpawnItem(usbPrefabs);
         if (xpObject != null) SpawnItem(xpObject); // 1 Boss Exp
+
+        // Boss KHÔNG rơi coin như quái thường (Die() của Boss không gọi base.Die() nên không dính DropCoin),
+        // thay vào đó rơi kim cương - nhưng chỉ đúng 1 lần duy nhất ở lần phá đảo đầu tiên của Stage này.
+        if (diamondPrefabs != null && GameManager.Instance != null && GameManager.Instance.ShouldDropDiamond())
+        {
+            SpawnItem(diamondPrefabs);
+        }
     }
 
     protected override void Die()

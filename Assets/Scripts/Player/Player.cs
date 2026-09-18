@@ -21,6 +21,10 @@ public class Player : MonoBehaviour
     // Bán kính hút vật phẩm (lõi Magnet, chung cho mọi nhân vật) - 0 = chưa có, tối đa 4
     private float magnetRadius = 0f;
 
+    // % sát thương lan CỘNG THÊM qua augment (Pháp sư) - lưu ở đây (không phải trên PlayerBullet) vì đạn
+    // là object tái sử dụng qua Pool, mutate trực tiếp lên 1 instance đạn sẽ không áp dụng cho các viên khác.
+    private float splashDamageBonus = 0f;
+
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 5f;
     private float baseMoveSpeedSnapshot; // Mốc tốc độ gốc của nhân vật (set trong ApplyCharacterData), dùng để tính % Speed đã tăng thêm qua augment
@@ -84,7 +88,11 @@ public class Player : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
         trailRenderer = GetComponent<TrailRenderer>();
-        
+
+        // Rigidbody2D tự "ngủ" khi đứng yên đủ lâu, lúc đó OnTriggerStay2D (VD stayDmg của Enemy) ngừng bắn
+        // dù vẫn đang chạm nhau. Ép không bao giờ ngủ để Player luôn nhận đủ sát thương stay kể cả đứng yên.
+        if (rb != null) rb.sleepMode = RigidbodySleepMode2D.NeverSleep;
+
         if (trailRenderer != null) trailRenderer.emitting = false;
     }
 
@@ -464,6 +472,12 @@ public class Player : MonoBehaviour
         Debug.Log("Sát thương hiện tại: " + bulletDamage);
     }
 
+    public void IncreaseDamagePercent(float amount)
+    {
+        bulletDamage *= amount;
+        Debug.Log("Sát thương hiện tại: " + bulletDamage +"%");
+    }
+
     public void AddLifeSteal(float amount)
     {
         lifeStealPercent += amount;
@@ -477,11 +491,19 @@ public class Player : MonoBehaviour
         Debug.Log("Bán kính hút vật phẩm hiện tại: " + magnetRadius);
     }
 
+    // Lõi riêng của Pháp sư: tăng % sát thương lan CỘNG THÊM vào splashDamagePercent gốc của đạn
+    public void IncreaseSplashDamagePercent(float amount)
+    {
+        splashDamageBonus += amount;
+        Debug.Log("% sát thương lan cộng thêm hiện tại: " + (splashDamageBonus * 100) + "%");
+    }
+
     // GETTERS
     public float GetCurrentDamage() => bulletDamage;
     public float GetRegenAmount() => regenAmount;
     public float GetLifeStealPercent() => lifeStealPercent;
     public float GetMagnetRadius() => magnetRadius;
+    public float GetSplashDamageBonus() => splashDamageBonus;
 
 
     // % tốc độ đã tăng thêm so với mốc gốc của nhân vật (1f = +100%). Dùng để giới hạn trần augment Speed.
