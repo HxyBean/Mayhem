@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &2601090092877016042
+--- !u!1 &400241558169765675
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,42 +8,41 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 4013194613188478618}
-  - component: {fileID: 435303440687357628}
-  - component: {fileID: 9078945886608938141}
-  - component: {fileID: 2889096651885002904}
-  - component: {fileID: 233346120653003465}
-  - component: {fileID: 2223994116318085406}
+  - component: {fileID: 2564391073549980331}
+  - component: {fileID: 6253949387329818552}
+  - component: {fileID: 3238495561677113841}
+  - component: {fileID: 2148353357939477234}
+  - component: {fileID: -715336211469113555}
   m_Layer: 0
-  m_Name: Diamond
-  m_TagString: Diamond
+  m_Name: ExpBoss
+  m_TagString: ExpBoss
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4013194613188478618
+--- !u!4 &2564391073549980331
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2601090092877016042}
+  m_GameObject: {fileID: 400241558169765675}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.29, y: -0.58, z: 0}
+  m_LocalPosition: {x: -3.39, y: -0.44, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &435303440687357628
+--- !u!212 &6253949387329818552
 SpriteRenderer:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2601090092877016042}
+  m_GameObject: {fileID: 400241558169765675}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -85,7 +84,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 3244622203517571467, guid: 7eed545ecd26b6f48bdfbb0073b32f85, type: 3}
+  m_Sprite: {fileID: 8951480728398027655, guid: e50166343dc9c4e499321ea8c53946a4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -95,17 +94,17 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!95 &9078945886608938141
+--- !u!95 &3238495561677113841
 Animator:
   serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2601090092877016042}
+  m_GameObject: {fileID: 400241558169765675}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: f922b72fae72ab64d8d07e3c686a4550, type: 2}
+  m_Controller: {fileID: 9100000, guid: 1eca387b406c2e547a839ec0d5b94be7, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -117,40 +116,13 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &2889096651885002904
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2601090092877016042}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d749b5e61014206408d8ded7c8b13825, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Pickup
-  magnetSpeed: 8
---- !u!114 &233346120653003465
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2601090092877016042}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 55ce2ce859f6d4644aa10205497bf635, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurrencyPickup
-  currencyType: 1
-  amount: 1
---- !u!58 &2223994116318085406
+--- !u!58 &2148353357939477234
 CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2601090092877016042}
+  m_GameObject: {fileID: 400241558169765675}
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
@@ -178,5 +150,18 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.0050521493, y: 0.060625404}
-  m_Radius: 0.3736971
+  m_Offset: {x: 0, y: 0}
+  m_Radius: 0.5
+--- !u!114 &-715336211469113555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 400241558169765675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d749b5e61014206408d8ded7c8b13825, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Pickup
+  magnetSpeed: 8

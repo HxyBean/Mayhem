@@ -12,6 +12,13 @@ public class GameUI : MonoBehaviour
 
     void Start()
     {
+        RefreshAllStats();
+    }
+
+    // Vẽ lại toàn bộ chỉ số. GameManager gọi lại hàm này sau khi áp chỉ số Shop, phòng khi Start() ở đây đã
+    // chạy trước và vẽ số liệu cũ.
+    public void RefreshAllStats()
+    {
         UpdateDmgText();
         UpdateHpText();
         UpdateRegenText();

@@ -17,6 +17,10 @@ public static class GameProgress
     // Tương tự, danh sách stageIndex đã nhận kim cương ("1,2") - chặn farm lại kim cương ở Stage đã lấy rồi.
     private const string DiamondClaimedStagesKey = "Mayhem_DiamondClaimedStages";
 
+    // Cấp đã mua của từng chỉ số trong Shop Power Up, mỗi chỉ số 1 key ("Mayhem_Shop_MaxHP"...). Ở đây KHÔNG
+    // cần gom CSV như nhân vật vì ShopStatType là enum cố định - ResetProgress duyệt Enum.GetValues là xóa đủ.
+    private const string ShopUpgradeKeyPrefix = "Mayhem_Shop_";
+
     // Bắn ra mỗi khi Coin/Kim cương thay đổi để UI (CurrencyUI) tự cập nhật, không phải kiểm tra lại mỗi frame.
     public static event System.Action OnCurrencyChanged;
 
@@ -126,6 +130,43 @@ public static class GameProgress
     }
 
     // ==============================================
+    // SHOP POWER UP (chỉ số nội tại mua bằng Coin)
+    // ==============================================
+    public static int GetShopLevel(ShopStatType stat)
+    {
+        return PlayerPrefs.GetInt(ShopUpgradeKeyPrefix + stat.ToString(), 0);
+    }
+
+    public static void SetShopLevel(ShopStatType stat, int level)
+    {
+        PlayerPrefs.SetInt(ShopUpgradeKeyPrefix + stat.ToString(), level);
+        SaveNow();
+    }
+
+    // Đổi Coin sang Kim cương. Trừ tiền và cộng kim cương trong cùng 1 hàm để không có trạng thái nửa vời
+    // (trừ được coin nhưng quên cộng kim cương).
+    public static bool TryExchangeCoinForDiamond(int coinCost, int diamondGain)
+    {
+        if (coinCost <= 0 || diamondGain <= 0) return false;
+        if (!TrySpendCoin(coinCost)) return false;
+
+        AddDiamond(diamondGain);
+        SaveNow();
+        return true;
+    }
+
+    // Chiều ngược lại: đổi Kim cương lấy Coin
+    public static bool TryExchangeDiamondForCoin(int diamondCost, int coinGain)
+    {
+        if (diamondCost <= 0 || coinGain <= 0) return false;
+        if (!TrySpendDiamond(diamondCost)) return false;
+
+        AddCoin(coinGain);
+        SaveNow();
+        return true;
+    }
+
+    // ==============================================
     // MỞ KHÓA NHÂN VẬT
     // ==============================================
     public static bool IsCharacterUnlocked(CharacterData character)
@@ -173,6 +214,13 @@ public static class GameProgress
         Diamond = 0;
         PlayerPrefs.DeleteKey(UnlockedCharactersKey);
         PlayerPrefs.DeleteKey(DiamondClaimedStagesKey);
+
+        // Chỉ số Shop mua bằng Coin nên cũng phải về 0 - giữ lại sức mạnh trong khi ví đã bị xóa sạch là vô lý
+        foreach (ShopStatType stat in System.Enum.GetValues(typeof(ShopStatType)))
+        {
+            PlayerPrefs.DeleteKey(ShopUpgradeKeyPrefix + stat.ToString());
+        }
+
         SaveNow();
     }
 
@@ -219,8 +267,8 @@ public static class GameProgress
     [UnityEditor.MenuItem("Mayhem/Debug/Add 1000 Coin + 50 Diamond")]
     private static void AddCurrency_Editor()
     {
-        AddCoin(1000);
-        AddDiamond(50);
+        AddCoin(2000);
+        AddDiamond(5);
         SaveNow();
     }
 #endif

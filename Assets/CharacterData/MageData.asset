@@ -15,7 +15,7 @@ MonoBehaviour:
   characterName: Mage
   unlockedByDefault: 0
   coinPrice: 500
-  diamondPrice: 5
+  diamondPrice: 1
   baseBulletDamage: 12
   baseMaxHP: 100
   baseMoveSpeed: 5

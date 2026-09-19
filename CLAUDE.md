@@ -27,7 +27,8 @@ Joystick mỗi khi thêm nhân vật, và mọi Scene Level chỉ cần đặt s
 MainMenu (Scene)
  ├─ Main Menu Panel        (Play, How To Play, New Game, Quit)
  ├─ Stage Select Panel     (StageButton × N, khóa/mở theo GameProgress.UnlockedStageCount)
- ├─ Character Select Panel (CharacterButton × N — Gunner/Mage/Knight)
+ ├─ Character Select Panel (CharacterButton × N — Gunner/Mage/Knight; có nút mở Shop + modal mua nhân vật)
+ ├─ Shop Panel             (modal mở đè từ Character Select — mua chỉ số nội tại, đổi Coin→Kim cương)
  ├─ How To Play Panel      (text hướng dẫn tiếng Anh)
  └─ New Game Confirm Panel (modal Yes/No)
         │
@@ -350,7 +351,61 @@ nút nào không đủ tiền thì bị làm mờ) → mua xong gọi lại `Cha
 nên đặt được ở bất kỳ panel/HUD nào mà không cần gọi Refresh thủ công.
 
 **New Game** (`GameProgress.ResetProgress()`): Coin/Kim cương về 0, xóa luôn 2 key CSV nói trên → nhân vật bị khóa
-lại từ đầu và kim cương từng Stage có thể nhận lại.
+lại từ đầu và kim cương từng Stage có thể nhận lại; đồng thời xóa hết cấp Shop (mục 8.2).
+
+### 8.2 Shop Power Up (chỉ số nội tại mua bằng Coin)
+
+[ShopUpgrades.cs](Assets/Scripts/Managers/ShopUpgrades.cs) — static class chứa CẢ enum `ShopStatType` lẫn bảng số
+liệu. Cố ý **hard-code thay vì làm ScriptableObject** như `CharacterData`/`StageData`: đây là 1 bảng duy nhất dùng
+chung toàn game, làm asset chỉ tổ phải kéo tham chiếu vào từng Scene Level mà không được thêm gì. Chỉnh số ngay
+trong file này.
+
+5 chỉ số × 5 mức, giá tịnh tiến **100/200/300/400/500** coin. Các con số dưới đây là **giá trị cộng thêm của TỪNG
+mức**, không phải tổng tích lũy (`GetTotalBonus()` tự cộng dồn từ mức 1 tới cấp đang có):
+
+| `ShopStatType` | Mức 1→5 | Tổng khi full |
+|---|---|---|
+| `MaxHP` | +20/40/60/80/100 | +300 |
+| `Damage` | +5/5/10/15/20 | +55 |
+| `MoveSpeed` | +0.2/0.2/0.2/0.4/1 | +2.0 |
+| `LifeSteal` | 1%/1%/2%/2%/3% (lưu 0.01/0.01/0.02...) | 9% |
+| `Regen` | 1/1/1/1/1 HP/s | 5 HP/s |
+
+Đổi tiền: `GameProgress.TryExchangeCoinForDiamond()` — mặc định **500 Coin = 1 Kim cương**
+(`ShopUpgrades.ExchangeCoinCost`/`ExchangeDiamondGain`).
+
+Lưu cấp: mỗi chỉ số 1 key `Mayhem_Shop_<tên enum>`. KHÔNG cần gom CSV như nhân vật vì `ShopStatType` là enum cố
+định → `ResetProgress()` duyệt `Enum.GetValues` là xóa đủ. **Tên các giá trị enum chính là khóa lưu** — đổi tên sẽ
+làm mất cấp đã mua của người chơi.
+
+**Áp vào Player**: `Player.ApplyShopUpgrades()` gọi từ `GameManager.Start()`, **BẮT BUỘC sau `ApplyCharacterData()`**
+(hàm đó ghi đè `maxHP`/`bulletDamage`/`moveSpeed` bằng chỉ số gốc nhân vật, gọi trước là mất sạch bonus) và đặt
+NGOÀI khối `if (currentCharacter != null)` để vẫn chạy khi Play thẳng Scene trong Editor. Hàm này chốt lại
+`baseMoveSpeedSnapshot` sau khi cộng speed, nếu không augment Speed sẽ bị cắt trần sớm.
+
+UI (bố cục kiểu Subway Surfers: icon + tên + thanh vạch cấp chia ô + nút giá/"Full"):
+- [ShopUpgradeButton.cs](Assets/Scripts/UI/ShopUpgradeButton.cs) — 1 dòng = 1 chỉ số. `levelSegments[]` là mảng các ô
+  VÀNG của thanh vạch (nên đủ 5 ô), script chỉ bật `level` ô đầu và tắt phần còn lại; khung ô trống để hiện sẵn phía
+  sau. Nút mua tự làm mờ khi thiếu tiền, đổi chữ thành `Full` khi đã 5/5.
+- [CoinExchangeButton.cs](Assets/Scripts/UI/CoinExchangeButton.cs) — bộ chọn số lượng: nút `+` / `-` / `Max`
+  (Max = số nhiều nhất đổi được với ví hiện tại) + 2 text (lượng Coin / lượng Kim cương của giao dịch) + nút chốt Đổi.
+  `selectedDiamond` luôn được kẹp trong `[1, maxAffordable]` ngay trong `Refresh()`, nên mọi nút chỉ cần đổi số rồi
+  gọi `Refresh()` là an toàn. Dùng chung cho **cả 2 chiều** qua enum `direction` (`CoinToDiamond` / `DiamondToCoin`)
+  — đặt 2 instance, mỗi cái 1 chiều. Kim cương LUÔN là đơn vị đếm ở cả 2 chiều, chỉ khác bên nào trả bên nào nhận;
+  đổi ngược bị giới hạn bởi số Kim cương đang có thay vì số Coin. Muốn chiều ngược thiệt hơn (chống đổi qua đổi
+  lại kiếm lời) thì để `coinPerDiamond` nhỏ hơn ở instance đó.
+
+Cả hai nghe `GameProgress.OnCurrencyChanged` nên mua/đổi ở 1 chỗ là cả bảng tự cập nhật lại — không cần ai gọi
+Refresh thủ công (kể cả `CurrencyUI` hiển thị số dư ở màn chọn nhân vật phía sau).
+
+**Vị trí**: Shop nằm TRONG màn Chọn nhân vật (mua chỉ số ngay trước khi vào màn). `MainMenuUI.ShowShop()` mở ĐÈ LÊN
+chứ không gọi `HideAllPanels()` — cùng kiểu modal với `newGameConfirmPanel` — nên `CloseShop()` là thấy lại ngay
+màn chọn nhân vật. `shopPanel` vẫn nằm trong `HideAllPanels()` để tự đóng khi rời sang panel khác.
+
+> **GOTCHA thứ tự Start()**: Unity KHÔNG đảm bảo thứ tự `Start()` giữa các MonoBehaviour khác nhau. Vì vậy
+> (a) `regenAmount = 0f` đã phải chuyển từ `Player.Start()` sang `Player.Awake()` — nếu để ở Start nó có thể xóa
+> mất lượng hồi máu Shop vừa áp; (b) `GameManager` gọi `GameUI.RefreshAllStats()` sau khi áp Shop vì `GameUI.Start()`
+> có thể đã vẽ số liệu cũ trước đó.
 
 ---
 
@@ -404,6 +459,7 @@ Managers/
   AugmentManager.cs      — Toàn bộ hệ thống augment (pool, chọn ngẫu nhiên/forced, áp hiệu ứng, cap)
   CharacterData.cs        — ScriptableObject cấu hình nhân vật
   StageData.cs             — ScriptableObject cấu hình độ khó/augment riêng theo Stage
+  ShopUpgrades.cs          — Bảng số liệu + logic mua của Shop Power Up (enum ShopStatType nằm cùng file)
   AudioManager.cs         — Master/Default(+Boss)/Effect volume độc lập
   ObjectPoolManager.cs    — Pool dùng chung cho mọi prefab spawn động
   CursorManager.cs         — (chưa tài liệu hóa chi tiết — ít thay đổi)
@@ -439,6 +495,8 @@ UI/
   StageButton.cs / CharacterButton.cs — Nút chọn Level/Nhân vật (CharacterButton kiêm trạng thái khóa + giá)
   CharacterUnlockPanel.cs       — Modal xác nhận mua nhân vật, chọn trả bằng Coin hoặc Kim cương
   CurrencyUI.cs                 — Hiển thị số Coin/Kim cương, tự cập nhật qua event
+  ShopUpgradeButton.cs          — 1 dòng chỉ số trong Shop (cấp, giá, phần thưởng mức kế, nút Mua)
+  CoinExchangeButton.cs         — Ô đổi Coin sang Kim cương
   DragAimButton.cs (abstract) → BombButton.cs / PotionButton.cs / BlinkButton.cs — Kéo-thả chọn vị trí
   ShieldButton.cs               — Giữ/thả (không phải drag-aim)
   ScrollingBackground.cs        — Nền cuộn vô hạn 2 ảnh (Main Menu)
@@ -463,6 +521,7 @@ UI/
 | Player bị giật lùi (knockback) ngay lúc bắn | `Rigidbody2D` của `PlayerBullet` để `Dynamic`, spawn đè lên Collider Player bị vật lý đẩy ra | Ép `rb.bodyType = Kinematic` trong `PlayerBullet.Awake()` |
 | Aim Bomb/Potion/Blink xuất hiện dính tại nút bấm, khó kéo | Aim reticle bám theo vị trí tuyệt đối ngón tay / vị trí nút | `DragAimButton` tính `worldDelta` (độ lệch so lúc mới nhấn), cộng vào vị trí NHÂN VẬT, không phải vị trí nút |
 | CS0163 "not all code paths return a value" khi tự thêm `case` mới vào switch trong `AugmentManager.ApplyEffect()` | Thiếu `break;` cuối case, rơi (fall-through) sang case kế tiếp | MỌI case (trừ case cuối switch) bắt buộc có `break;`/`return;` — kiểm tra kỹ khi tự sửa tay |
+| Mua chỉ số Shop: UI lệch đúng 1 nhịp (bấm lần đầu không lên cấp), và khi full 5/5 phải thoát ra vào lại mới thấy "Full" | `OnCurrencyChanged` bắn ra NGAY LÚC trừ Coin, tức TRƯỚC khi `TryBuyUpgrade` ghi cấp mới → dòng đó vẽ lại bằng cấp cũ. Còn khi đã full thì hàm thoát sớm, không trừ Coin nên event KHÔNG bắn phát nào | Dòng vừa bấm phải tự gọi `Refresh()` sau `TryBuyUpgrade()`. **Quy tắc chung: đừng dùng event "tiền thay đổi" để vẽ lại thứ phụ thuộc trạng thái KHÁC ngoài tiền** — event có thể bắn giữa chừng giao dịch, hoặc không bắn khi giao dịch bị từ chối |
 
 ---
 

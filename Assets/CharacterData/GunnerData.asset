@@ -51,3 +51,7 @@ MonoBehaviour:
     description: Shoot 3 ammo instead 1 in different angle
     type: SplitShot
     requiredLevel: 10
+  - name: RELOAD
+    description: -0.5s Reload
+    type: Reload
+    requiredLevel: 7

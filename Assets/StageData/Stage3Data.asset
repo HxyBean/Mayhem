@@ -20,6 +20,6 @@ MonoBehaviour:
   enemySpeedMultiplier: 1.1
   extraAugments:
   - name: PercentDamage
-    description: +10% Damage
+    description: +20% Damage
     type: PercentDamage
     requiredLevel: 10

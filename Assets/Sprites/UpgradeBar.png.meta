@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: ef29cee03fb185742a35e51726c14534
+guid: 70465ecf26baa2b429b1544b9cb9909d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3849189375939416966
-    second: exp_small_0
+      213: 4524324391977994471
+    second: UpgradeBar_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,12 +46,12 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 450
+  spritePixelsToUnits: 16
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: exp_small_0
+      name: UpgradeBar_0
       rect:
         serializedVersion: 2
-        x: 24
-        y: 24
-        width: 152
-        height: 152
+        x: 9
+        y: 13
+        width: 14
+        height: 6
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a7c6ced08aee49ac0800000000000000
-      internalID: -3849189375939416966
+      spriteID: 7e8cb784011a9ce30800000000000000
+      internalID: 4524324391977994471
       vertices: []
       indices: 
       edges: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      exp_small_0: -3849189375939416966
+      UpgradeBar_0: 4524324391977994471
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
