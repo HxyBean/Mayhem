@@ -136,6 +136,15 @@ public class GameManager : MonoBehaviour
             if (AugmentManager.Instance != null) AugmentManager.Instance.ApplyCharacterData(currentCharacter);
         }
 
+        // Chỉ số nội tại mua ở Shop - áp SAU ApplyCharacterData() (hàm đó ghi đè chỉ số gốc theo nhân vật) và
+        // để ngoài khối if để vẫn hoạt động cả khi Play thẳng Scene trong Editor mà không chọn nhân vật nào.
+        if (Player.Instance != null) Player.Instance.ApplyShopUpgrades();
+
+        // HUD có thể đã tự vẽ số liệu từ Start() của chính nó TRƯỚC khi chỗ này chạy (Unity không đảm bảo thứ
+        // tự Start giữa các MonoBehaviour), nên phải vẽ lại cho khớp chỉ số cuối cùng.
+        GameUI gameUI = FindFirstObjectByType<GameUI>();
+        if (gameUI != null) gameUI.RefreshAllStats();
+
         SetActiveMenu(null);
         audioManager.PlayDefaultAudio();
     }

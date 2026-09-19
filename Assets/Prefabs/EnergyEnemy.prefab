@@ -187,8 +187,8 @@ MonoBehaviour:
   stayDmg: 1
   stayDmgInterval: 0.25
   hpBar: {fileID: 6755213958219969918}
-  xpObject: {fileID: 5274204108618876423, guid: b4b3cda023f9fcd4ba2e797027e56368, type: 3}
-  bigXpObject: {fileID: 163816464090496648, guid: a8562d7a93ebabd43b6296c2d79afdc6, type: 3}
+  xpObject: {fileID: 8789430838050173954, guid: b74ab656e476f51428375dc0fb5175d6, type: 3}
+  bigXpObject: {fileID: 1773101773148576407, guid: ed5d0a69f4431214daa3e03a67332bec, type: 3}
   coinObject: {fileID: 8955785383546072880, guid: 0faa1ad8d99bf164c81907b29275cc25, type: 3}
   energyObject: {fileID: 3451771213955610610, guid: d299e8874ce66974aaf0c5b0ba0c0469, type: 3}
 --- !u!95 &6475234982203328191

@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterName: Knight
   unlockedByDefault: 0
-  coinPrice: 500
-  diamondPrice: 5
+  coinPrice: 1200
+  diamondPrice: 1
   baseBulletDamage: 30
   baseMaxHP: 250
   baseMoveSpeed: 6

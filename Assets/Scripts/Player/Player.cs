@@ -94,12 +94,16 @@ public class Player : MonoBehaviour
         if (rb != null) rb.sleepMode = RigidbodySleepMode2D.NeverSleep;
 
         if (trailRenderer != null) trailRenderer.emitting = false;
+
+        // Đảm bảo khởi đầu là 0 (phòng khi Inspector lỡ để giá trị khác). PHẢI đặt ở Awake chứ không phải
+        // Start: GameManager.Start() có thể chạy TRƯỚC Start() của Player (Unity không đảm bảo thứ tự giữa 2
+        // MonoBehaviour khác nhau), nếu reset ở Start thì lượng hồi máu mua từ Shop vừa áp xong sẽ bị xóa mất.
+        regenAmount = 0f;
     }
 
     private void Start()
     {
         currentHP = maxHP;
-        regenAmount = 0f; // Đảm bảo khởi đầu là 0
         UpdateHPBar();
     }
 
@@ -354,6 +358,28 @@ public class Player : MonoBehaviour
         {
             spriteRenderer.sprite = character.idleSprite;
         }
+    }
+
+    // ==============================================
+    // SHOP POWER UP (chỉ số nội tại mua bằng Coin, áp mỗi lần vào màn)
+    // ==============================================
+    // PHẢI gọi SAU ApplyCharacterData() vì hàm đó ghi đè maxHP/bulletDamage/moveSpeed bằng chỉ số gốc của
+    // nhân vật - gọi trước thì toàn bộ bonus mua ở Shop sẽ bị xóa sạch.
+    public void ApplyShopUpgrades()
+    {
+        maxHP += ShopUpgrades.GetTotalBonus(ShopStatType.MaxHP);
+        bulletDamage += ShopUpgrades.GetTotalBonus(ShopStatType.Damage);
+        moveSpeed += ShopUpgrades.GetTotalBonus(ShopStatType.MoveSpeed);
+        lifeStealPercent += ShopUpgrades.GetTotalBonus(ShopStatType.LifeSteal);
+
+        // Chốt LẠI mốc tốc độ gốc sau khi đã cộng bonus Shop. Nếu vẫn dùng mốc cũ thì GetSpeedBonusPercent()
+        // sẽ tưởng người chơi đã tự tăng sẵn x% và cắt trần augment Speed sớm hơn thực tế.
+        baseMoveSpeedSnapshot = moveSpeed;
+
+        RestoreFullHP();
+
+        float regenPerSecond = ShopUpgrades.GetTotalBonus(ShopStatType.Regen);
+        if (regenPerSecond > 0f) StartHealthRegen(regenPerSecond);
     }
 
     // ==============================================

@@ -3446,7 +3446,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &548133562
 RectTransform:
   m_ObjectHideFlags: 0
@@ -215613,7 +215613,7 @@ MonoBehaviour:
   stayDmg: 0
   stayDmgInterval: 1
   hpBar: {fileID: 651035827}
-  xpObject: {fileID: 3041568760084445096, guid: 6e552aaccfdb62b4793cb22858b08243, type: 3}
+  xpObject: {fileID: 400241558169765675, guid: e13f48e9db0bd414d959cbd3c689682a, type: 3}
   bigXpObject: {fileID: 163816464090496648, guid: a8562d7a93ebabd43b6296c2d79afdc6, type: 3}
   coinObject: {fileID: 8955785383546072880, guid: 0faa1ad8d99bf164c81907b29275cc25, type: 3}
   firePos: {fileID: 673771278}
@@ -215626,7 +215626,7 @@ MonoBehaviour:
   usbPrefabs: {fileID: 7020812102562486728, guid: 50ad6a63399ddc045a8ef4ce9e15cff5, type: 3}
   bulletPrefabs: {fileID: 4314570109768693191, guid: b74432ee6dfe2ed49935253220e21927, type: 3}
   diamondPrefabs: {fileID: 2601090092877016042, guid: 6a298879254672649a5be0b9e42a0944, type: 3}
-  teleportTelegraphTime: 0.25
+  teleportTelegraphTime: 0.5
   teleportLandingRadius: 1.5
   teleportTelegraphPrefab: {fileID: 0}
 --- !u!50 &1884447321

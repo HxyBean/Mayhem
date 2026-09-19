@@ -8,6 +8,9 @@ public class MainMenuUI : MonoBehaviour
     [SerializeField] private GameObject characterSelectPanel;
     [SerializeField] private GameObject howToPlayPanel;
     [SerializeField] private GameObject newGameConfirmPanel;
+    [Tooltip("Panel Shop Power Up (mua chỉ số nội tại bằng Coin + đổi Coin sang Kim cương) - mở đè lên từ trong " +
+             "panel Chọn nhân vật, không thay thế panel phía sau")]
+    [SerializeField] private GameObject shopPanel;
 
     private void Start()
     {
@@ -23,6 +26,7 @@ public class MainMenuUI : MonoBehaviour
         if (characterSelectPanel != null) characterSelectPanel.SetActive(false);
         if (howToPlayPanel != null) howToPlayPanel.SetActive(false);
         if (newGameConfirmPanel != null) newGameConfirmPanel.SetActive(false);
+        if (shopPanel != null) shopPanel.SetActive(false);
     }
 
     public void ShowMainMenu()
@@ -42,6 +46,19 @@ public class MainMenuUI : MonoBehaviour
     {
         HideAllPanels();
         if (characterSelectPanel != null) characterSelectPanel.SetActive(true);
+    }
+
+    // Gọi từ nút "Shop" trong panel Chọn nhân vật. Mở ĐÈ LÊN (không gọi HideAllPanels) nên đóng Shop là thấy
+    // lại ngay màn chọn nhân vật, không cần điều hướng qua lại - cùng kiểu với modal newGameConfirmPanel.
+    public void ShowShop()
+    {
+        if (shopPanel != null) shopPanel.SetActive(true);
+    }
+
+    // Gọi từ nút đóng/Back của Shop
+    public void CloseShop()
+    {
+        if (shopPanel != null) shopPanel.SetActive(false);
     }
 
     // Gọi từ nút "How To Play" trên Main Menu
