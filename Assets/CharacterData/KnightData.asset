@@ -14,17 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterName: Knight
   unlockedByDefault: 0
-  coinPrice: 1200
-  diamondPrice: 1
+  coinPrice: 1
+  diamondPrice: 2
   baseBulletDamage: 30
   baseMaxHP: 250
   baseMoveSpeed: 6
   combatType: 1
   bulletPrefab: {fileID: 0}
+  usesAmmo: 1
+  shotDelay: 0
   abilityType: 2
   animatorController: {fileID: 22100000, guid: 26b165dae72482843863cca7e8f7cae9, type: 2}
   idleSprite: {fileID: 1708082554452059069, guid: 99a0eef51d6ec884688e7e81771a4270, type: 3}
+  selectIcon: {fileID: 1708082554452059069, guid: 99a0eef51d6ec884688e7e81771a4270, type: 3}
   weaponSprite: {fileID: 21300000, guid: 6c5a4a039ed87044295508bd426cf357, type: 3}
+  weaponOffset: {x: 0, y: 0}
   shootSound: {fileID: 0}
   reloadSound: {fileID: 0}
   shootButtonIcon: {fileID: -6717884257390833292, guid: 923e788bdb8c78f40bd9203e145757d2, type: 3}
@@ -33,7 +37,7 @@ MonoBehaviour:
   - name: SWORDSPIN
     description: swordspin
     type: SwordSpin
-    requiredLevel: 1
+    requiredLevel: 3
   - name: SwordSpinCooldown
     description: '- 2s'
     type: SwordSpinCooldown

@@ -21,7 +21,7 @@ public static class ShopUpgrades
     public const int ExchangeDiamondGain = 1;
 
     // Giá Coin của từng mức (mức 1 → 5) - tịnh tiến, mức sau đắt hơn mức trước
-    private static readonly int[] levelCosts = { 100, 200, 300, 400, 500 };
+    private static readonly int[] levelCosts = { 200, 400, 600, 1000, 2000 };
 
     // Giá trị CỘNG THÊM tại từng mức (KHÔNG phải tổng tích lũy). VD Máu: mua mức 1 được +20, mua tiếp mức 2
     // được +40 nữa (tổng +60)... mua hết 5 mức là tổng +300.

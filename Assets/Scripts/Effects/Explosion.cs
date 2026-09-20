@@ -9,13 +9,17 @@ public class Explosion : MonoBehaviour
         Player player = collision.GetComponent<Player>();
         Enemy enemy = collision.GetComponent<Enemy>();
 
-        if(collision.CompareTag("Player"))
-        {   
+        if (collision.CompareTag("Player"))
+        {
             player.TakeDmg(dmg);
         }
         if (collision.CompareTag("Enemy"))
         {
             enemy.TakeDmg(dmg);
+        }
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayBombSound();
         }
 
     }

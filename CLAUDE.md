@@ -62,9 +62,12 @@ Asset hiện có: `GunnerData.asset`, `MageData.asset`, `KnightData.asset` (`Ass
 | `baseMaxHP` / `baseMoveSpeed` | Override máu/tốc độ riêng nhân vật này — **0 = giữ nguyên giá trị mặc định trên Player trong Scene** |
 | `combatType` | `Ranged` (dùng `Gun.cs`) hoặc `Melee` (dùng `KnightCombat.cs`) |
 | `bulletPrefab` | Prefab đạn riêng (chỉ Ranged) |
+| `usesAmmo` | Bỏ tick (Robot) = bắn không tốn đạn, ẩn nút Nạp đạn, ô text đạn thành bộ đếm charge Laser |
+| `shotDelay` | Nhịp bắn riêng nhân vật — **0 = giữ nguyên giá trị mặc định trên Gun trong Scene** |
 | `abilityType` | `Dash` (Gunner) / `Blink` (Mage) / `None` (Knight — không có, vì "quá trâu không cần né") |
 | `animatorController`, `idleSprite` | Tạo hình riêng nhân vật |
 | `weaponSprite`, `shootSound`, `reloadSound`, `shootButtonIcon`, `reloadButtonIcon` | Vũ khí/âm thanh/UI riêng (chỉ Ranged) |
+| `weaponOffset` | **Độ lệch** vị trí vũ khí so với chỗ đặt sẵn trong Scene (không phải toạ độ tuyệt đối) — dùng khi nhân vật cao/thấp khác nhau làm súng bị lệch. `(0,0)` = giữ nguyên |
 | `exclusiveAugments` | List augment CHỈ xuất hiện khi chơi nhân vật này |
 | `unlockedByDefault` | Nhân vật khởi đầu (Gunner) — luôn mở sẵn, không cần mua |
 | `coinPrice` / `diamondPrice` | Giá mở khóa. **<= 0 = KHÔNG cho mua bằng loại tiền đó** (nút thanh toán tương ứng tự ẩn) |
@@ -97,7 +100,34 @@ Asset hiện có: `GunnerData.asset`, `MageData.asset`, `KnightData.asset` (`Ass
   `blinkCooldown *= 0.9` mỗi lần — **lưu ý: cách tính này là NHÂN DỒN (multiplicative), không phải trừ cố định**),
   Potion (mở khóa lõi ném bình thuốc — xem mục 5).
 
-### 3.3 Knight (Melee)
+### 3.3 Robot (Ranged, không dùng đạn)
+Vẫn dùng chung `Gun.cs` để bắn/auto-aim, nhưng `CharacterData.usesAmmo = false` thay toàn bộ lớp tài nguyên:
+- **Không nạp đạn**: bắn không tốn gì, chỉ bị giới hạn bởi `shotDelay` (đặt 0.25–0.5s cho Robot). Mọi chỗ trừ/kiểm
+  tra đạn trong `Gun.cs` đi qua `ConsumeAmmo()`/`HasAmmo()` nên chỉ cần 1 cờ là tắt được cả cơ chế. Nút Nạp đạn tự
+  ẩn, thay bằng nút Laser (`ApplyCharacterData` xử lý — chạy SAU `SetActive()` nên ghi đè được).
+- **Ô text đạn thành bộ đếm charge**: `UpdateAmmoText()` hiện `7/10` thay vì số đạn.
+- **Laser** (nội tại, không cần lõi): đủ `laserChargeRequired` (10) đòn bắn thường thì bắn được 1 phát, reset về 0.
+  **Kéo thả chọn HƯỚNG** qua [LaserButton.cs](Assets/Scripts/UI/LaserButton.cs) (xem mục 7), thả tay là bắn.
+  Là chiêu **TỨC THÌ, không phải viên đạn bay** — `Physics2D.OverlapBoxAll` quét 1 hình chữ nhật
+  `laserRange × laserWidth` theo hướng đã chọn rồi gây `bulletDamage × 1.5` cho MỌI Enemy trong đó (xuyên thấu,
+  không bị chặn ở con đầu tiên), sau đó spawn `laserEffectPrefab` xoay đúng hướng. Có `OnDrawGizmosSelected` vẽ
+  vùng trúng đòn để căn cho khớp sprite.
+  > Tia bắn từ **tâm nhân vật**, KHÔNG phải từ `firePos`: súng vẫn auto-aim vào con gần nhất nên có thể đang chĩa
+  > hẳn hướng khác với hướng vừa kéo, lấy nòng súng làm gốc sẽ thấy tia mọc ra từ sau lưng.
+  > Sprite tia laser phải để **pivot = Left** (mép trái), nếu để giữa thì nửa tia đâm ngược ra sau nhân vật.
+  > Hiệu ứng tia được **gắn làm con của Player** (`SetParent` + `localPosition = 0`) để bám theo nhân vật lúc chạy,
+  > giống hiệu ứng chém của Knight. Gắn vào PLAYER chứ không phải Gun — Gun tự xoay auto-aim liên tục, gắn vào đó
+  > thì tia sẽ quay theo nòng. Sát thương vẫn tính 1 lần tại thời điểm bắn (chỉ phần hình ảnh đi theo).
+- **Lõi riêng — Mini Robot**: thả 3 con [MiniRobot.cs](Assets/Scripts/Weapons/MiniRobot.cs) chạy theo hướng nòng
+  súng (xếp lệch nhau theo trục vuông góc như `ShootBurst`), chạm Enemy thì nổ gây `bulletDamage × 2` (có
+  `explosionRadius` lan sang xung quanh, để 0 = chỉ trúng con chạm vào). Cooldown 20s, mở khóa qua augment type
+  `"MiniRobot"`, theo đúng pattern `EnableBomb()`/`EnablePotion()`.
+
+> `Start()` của Gun cố tình **KHÔNG** ẩn `laserButtonObj` (chỉ ẩn `miniRobotButtonObj`): `ApplyCharacterData()`
+> mới là nơi quyết định nút Laser hiện/ẩn, mà `Start()` có thể chạy SAU hàm đó → ẩn ở `Start()` sẽ ẩn nhầm nút
+> của Robot. Nút Mini Robot thì an toàn vì chỉ được bật lúc chọn lõi, rất lâu sau `Start()`.
+
+### 3.4 Knight (Melee)
 Toàn bộ cơ chế nằm ở [KnightCombat.cs](Assets/Scripts/Weapons/KnightCombat.cs) (đặt cùng GameObject Player, được
 `GameManager` bật/tắt qua `SetActive()` giống `Gun.cs`). Khi chọn Knight, `Gun.SetActive(false)` sẽ tự ẩn hẳn
 sprite súng + nút Bắn/Nạp đạn/Bomb/Potion (xem mục 8.2 — bug đã sửa).
@@ -201,6 +231,9 @@ trần 2/s), `BlinkCooldown` (Player.ReduceBlinkCooldown ×0.9), `Potion` (Gun.E
 **Riêng Knight:** `AttackSpeed` (-0.1s/đòn, trần 0.5s/đòn), `StaminaRegen` (+1/s), `ShieldCost` (-1 stamina/s tốn),
 `SwordSpin` (mở khóa), `SwordSpinCooldown` (sub-augment, -2s, chỉ hiện sau khi có SwordSpin).
 
+**Riêng Robot:** `MiniRobot` (Gun.EnableMiniRobot, mở khóa, chọn 1 lần). Robot KHÔNG dùng được `Bullet`/`Reload`
+(không có đạn) lẫn `ManaRegen` — đừng đưa các augment đó vào `exclusiveAugments` của nó.
+
 **Riêng Stage (VD Stage 2-3):** `PercentDamage` — Player.IncreaseDamagePercent(×1.2, tức +20% NHÂN DỒN mỗi lần
 chọn — khác `Damage` là cộng flat).
 
@@ -235,8 +268,31 @@ BossEnemy     — override OnEnable/Update/DropItems/Die, thêm skill ngẫu nhi
 ### 6.1 Boss — cơ chế hồi sinh & skill
 `GameManager.AddEnergy()` gọi `CallBoss()` khi đủ `energyThreshold` → `boss.SetActive(true)`. Boss chết
 (`Die()`) chỉ `SetActive(false)` (không destroy) và nhân `baseMaxHP *= 1.5f` (máu tăng dần mỗi lần hồi sinh — vì
-`ApplyStageDifficulty()` tính lại `maxHP = baseMaxHP * hpMultiplier` mỗi `OnEnable()`). Nhặt USB (`AddUSB()`)
-không đủ ngưỡng thắng → `GameManager` respawn lại Boss sau 2s (`DelayedBossSpawn`). Đủ USB → `WinGame()`.
+`ApplyStageDifficulty()` tính lại `maxHP = baseMaxHP * hpMultiplier` mỗi `OnEnable()`).
+
+**Tiến trình phá đảo tính theo SỐ PHASE BOSS ĐÃ HẠ, không phải theo vật phẩm USB nhặt được.** `BossEnemy.Die()`
+gọi `GameManager.OnBossDefeated()` → `currentUSB++` + `UpdateUsbBar()` → đủ `usbThreshold` thì `WinGame()`, chưa
+đủ thì `SpawnBossWarningThenCallBoss()` (hiệu ứng cảnh báo `bossRevive`, 2s sau Boss xuất hiện lại).
+
+> Cách cũ (cộng tiến trình lúc NHẶT USB) tạo lỗ hổng: cứ bỏ viên USB nằm dưới đất là kẹt phase vĩnh viễn mà vẫn
+> farm coin/kinh nghiệm từ quái thường vô hạn. Tính theo lần hạ Boss thì người chơi không còn cần gạt nào để
+> trì hoãn, nên lỗ hổng biến mất về mặt cấu trúc — cơ chế hẹn giờ ép Boss respawn từng thêm vào đã được gỡ bỏ.
+
+Vật phẩm **USB giờ chỉ còn là đồ hồi đầy máu** (`PlayerCollision` → `player.RestoreFullHP()`), không còn vai trò
+tiến trình. Không muốn Boss rơi USB nữa thì bỏ trống `usbPrefabs` trên prefab Boss, không cần sửa code.
+
+**Tên `currentUSB`/`usbThreshold`/`usbBar` giữ nguyên** dù nay mang nghĩa "phase Boss" — đổi tên field
+`[SerializeField]` sẽ làm mất giá trị/tham chiếu đã gán trong Inspector mà Unity không báo lỗi gì.
+
+**Hệ quả — `WinGame()` gom phần thưởng trước khi đóng băng**: thắng xảy ra NGAY lúc hạ Boss phase cuối, tức
+`Time.timeScale = 0` ngay khi coin vừa rơi ra từ đám quái cuối cùng. Vì vậy `WinGame()` gọi
+`CollectDroppedCurrency()` (quét tag `Coin`/`Diamond` còn trên bản đồ, `Collect()` rồi trả về Pool) **trước**
+`CommitRunCurrency()`. Kim cương đã tránh được vấn đề này bằng cách rơi ở phase đầu, nhưng bước gom vẫn cần cho
+coin — và là lưới an toàn nếu ai đó set `usbThreshold = 1` (phase đầu cũng chính là phase cuối).
+
+**PHỤ THUỘC THỨ TỰ trong `BossEnemy.Die()`**: `DropItems()` (nơi gọi `ShouldDropDiamond()` → `IsFirstBossKill()`)
+phải chạy TRƯỚC `OnBossDefeated()` (nơi tăng `currentUSB`). Nhờ vậy ở phase đầu tiên `currentUSB` vẫn đang là 0.
+Đảo thứ tự 2 dòng này là kim cương không bao giờ rơi.
 
 Boss có 5 skill random (`PickRandomSkill`): NormalAtk, CircleAtk (12 viên tỏa tròn), Heal, SpawnMini, Teleport
 (có 0.25s telegraph đứng im vận chiêu, khóa vị trí đích NGAY từ đầu vận chiêu để Player có cơ hội né trong lúc
@@ -271,7 +327,11 @@ Cùng 1 PATTERN kéo-thả dùng chung, tách base class [`DragAimButton.cs`](As
 - Subclass chỉ cần override `CanStartDrag()` (điều kiện được phép bắt đầu kéo) và `OnConfirm(Vector3 targetPos)`
   (hành động khi thả tay ngoài vùng hủy): `BombButton` → `Gun.CanThrowBomb()`/`Gun.ThrowBomb()`, `PotionButton` →
   `Gun.CanThrowPotion()`/`Gun.ThrowPotion()`, `BlinkButton` → `Player.CanBlink()`/`Player.Blink()` (với
-  `maxRange = 5f`).
+  `maxRange = 5f`), `LaserButton` → `Gun.CanFireLaser()`/`Gun.FireLaser(direction)`.
+- **Chọn ĐIỂM vs chọn HƯỚNG**: Bomb/Potion/Blink nhắm vào 1 toạ độ nên hồng tâm chạy theo ngón tay. Laser chỉ cần
+  hướng, nên `LaserButton` override thêm `ApplyAimVisual()` để mũi tên **đứng yên tại nhân vật và chỉ xoay**.
+  Vì vậy base class lưu riêng `lastAimTargetPosition` và truyền biến đó vào `OnConfirm()` — KHÔNG đọc
+  `aimReticle.position` như trước, vì với Laser thì vị trí GameObject hồng tâm không còn là vị trí đích nữa.
 
 **Bomb** ([Bomb.cs](Assets/Scripts/Weapons/Bomb.cs)) và **Potion** ([Potion.cs](Assets/Scripts/Weapons/Potion.cs))
 dùng chung cơ chế bay: `Vector3.MoveTowards` tới đích, chạm đích (khoảng cách < 0.1f) thì kích hoạt — Bomb nổ AOE
@@ -312,12 +372,13 @@ nhân vật ở màn Character Select. Vật phẩm rơi ra mang script [Currenc
   `DropItems()` sẽ làm mất coin). Để trống `coinObject` = loại quái đó không rơi coin.
 - **Kim cương**: chỉ Boss rơi (Boss override `Die()` không gọi `base.Die()` nên không dính coin). Điều kiện rơi
   nằm ở `GameManager.ShouldDropDiamond()`, phải thỏa **CẢ 3**:
-  1. `IsFinalBossKill()` — lần hạ Boss CUỐI của ván (`currentUSB + 1 >= usbThreshold`, tức lần chết thứ 3 với
-     ngưỡng 3 USB; lần chết đầu/thứ hai KHÔNG rơi).
-  2. `!GameProgress.IsStageCompleted(stageIndex)` — lần đầu phá đảo Stage này (đánh lại không rơi nữa).
+  1. `IsFirstBossKill()` — phase Boss ĐẦU TIÊN của ván (`currentUSB == 0`). **Cố ý rơi ở phase đầu chứ không phải
+     phase cuối**: hạ Boss phase cuối là thắng luôn → `Time.timeScale = 0` ngay lúc kim cương vừa rơi ra, người
+     chơi không kịp chạy tới nhặt mà bỏ lỡ là mất vĩnh viễn. Rơi sớm thì có cả ván để thong thả nhặt.
+  2. `!GameProgress.IsStageCompleted(stageIndex)` — lần đầu chinh phục Stage này (đánh lại không rơi nữa).
   3. `!GameProgress.IsStageDiamondClaimed(stageIndex)` — chưa từng NHẶT kim cương của Stage này.
-  Điều kiện 3 được đánh dấu ngay lúc **nhặt** (`CurrencyPickup.Collect()` → `GameManager.MarkStageDiamondClaimed()`),
-  KHÔNG phải lúc thắng — nếu đánh dấu lúc thắng thì người chơi có thể nhặt kim cương rồi cố tình chết để farm lại.
+  Điều kiện 3 được đánh dấu lúc **commit** (`CommitRunCurrency()`), nên mỗi Stage chỉ cho đúng 1 viên kim cương
+  trọn đời: nhặt rồi chết vẫn được giữ (và đánh dấu luôn), còn thoát giữa chừng thì không mất vĩnh viễn.
 
 **Ví tạm của ván (`runCoin`/`runDiamond` trên GameManager)**: tiền nhặt trong màn KHÔNG cộng thẳng vào tổng đã lưu.
 `CurrencyPickup.Collect()` → `GameManager.AddRunCoin/AddRunDiamond()` (ví tạm), rồi `CommitRunCurrency()` mới đổ vào
@@ -340,6 +401,21 @@ Character Select) hoặc `ThisRun` (nhặt trong ván — HUD trong game / Win /
 **Thanh USB**: ẩn lúc `Start()`, hiện ở `CallBoss()` (`SetUsbBarVisible`). Vì `OnBossDefeated()` hiện KHÔNG được gọi
 ở đâu nên `IsBossCalled` giữ `true` từ lần Boss đầu tiên — thanh USB hiện luôn từ đó, không bị chớp tắt mỗi lần Boss
 chết/hồi sinh.
+
+**Chia trang (dùng chung cho cả 2 màn chọn)** — [CharacterSelectPager.cs](Assets/Scripts/UI/CharacterSelectPager.cs)
+và [StageSelectPager.cs](Assets/Scripts/UI/StageSelectPager.cs), mỗi cái đặt trên chính panel tương ứng để
+`OnEnable` chạy được mỗi lần mở màn. Các ô nút (`slots`) được dựng sẵn 1 lần và **DÙNG CHUNG cho mọi nhân vật/Level**
+— mỗi lần lật trang, pager nạp lại data tương ứng vào từng ô qua `CharacterButton.SetCharacter()` /
+`StageButton.SetStage()`. Vì vậy **thêm nhân vật/Level mới chỉ cần thêm 1 phần tử vào mảng `allCharacters`/`allStages`**,
+không phải dựng thêm nút hay trang nào trong Editor — đúng tinh thần data-driven ở mục 1.
+
+Hệ quả: thứ phân biệt các ô phải lấy từ data (`CharacterData.selectIcon`/`characterName`,
+`StageData.previewImage`/`stageName`) chứ không gán tay từng ô nữa. Cụm `<` `>` + text số trang tự ẩn hẳn khi chỉ
+có đúng 1 trang, và mờ dần ở 2 đầu (không lật vòng). Trang cuối thừa ô thì ô thừa bị ẩn hẳn.
+
+> 2 pager này gần như trùng code nhưng **cố ý KHÔNG gộp thành generic base class**: MonoBehaviour generic khiến
+> Unity serialize field của lớp cha khó đoán và Inspector dễ hiển thị thiếu — rủi ro cao hơn lợi ích cho 1 đoạn
+> logic chỉ là phép tính chỉ số. Nếu sau này có màn thứ 3 cần chia trang thì cân nhắc lại.
 
 **Mở khóa nhân vật**: danh sách nhân vật đã mua lưu dạng **CSV trong ĐÚNG 1 key** (`Mayhem_UnlockedCharacters` =
 `"Mage,Knight"`), tương tự stage đã nhận kim cương (`Mayhem_DiamondClaimedStages`). Lý do gom 1 key: PlayerPrefs
@@ -493,11 +569,14 @@ UI/
   GameUI.cs                    — Cập nhật text/HUD trong ván chơi (Update...Text gọi từ AugmentManager)
   MainMenuUI.cs                — Điều hướng panel Main Menu
   StageButton.cs / CharacterButton.cs — Nút chọn Level/Nhân vật (CharacterButton kiêm trạng thái khóa + giá)
+  CharacterSelectPager.cs / StageSelectPager.cs — Chia trang nhân vật/Level, lật bằng 2 nút < >
+                                  (các ô nút dùng chung, nạp data theo trang)
   CharacterUnlockPanel.cs       — Modal xác nhận mua nhân vật, chọn trả bằng Coin hoặc Kim cương
   CurrencyUI.cs                 — Hiển thị số Coin/Kim cương, tự cập nhật qua event
   ShopUpgradeButton.cs          — 1 dòng chỉ số trong Shop (cấp, giá, phần thưởng mức kế, nút Mua)
   CoinExchangeButton.cs         — Ô đổi Coin sang Kim cương
-  DragAimButton.cs (abstract) → BombButton.cs / PotionButton.cs / BlinkButton.cs — Kéo-thả chọn vị trí
+  DragAimButton.cs (abstract) → BombButton.cs / PotionButton.cs / BlinkButton.cs (chọn ĐIỂM)
+                              → LaserButton.cs (chọn HƯỚNG, mũi tên xoay tại chỗ)
   ShieldButton.cs               — Giữ/thả (không phải drag-aim)
   ScrollingBackground.cs        — Nền cuộn vô hạn 2 ảnh (Main Menu)
 ```

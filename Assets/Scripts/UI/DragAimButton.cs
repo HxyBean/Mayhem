@@ -17,6 +17,11 @@ public abstract class DragAimButton : MonoBehaviour, IPointerDownHandler, IDragH
     private bool isHoveringCancel = false;
     private Vector2 pressScreenPos;
 
+    // Vị trí đích tính được ở lần UpdateAim gần nhất. Lưu riêng thay vì đọc lại aimReticle.position lúc thả tay,
+    // vì có subclass (LaserButton) cố tình giữ hồng tâm đứng yên tại nhân vật và chỉ xoay - lúc đó vị trí của
+    // GameObject hồng tâm KHÔNG còn là vị trí đích nữa.
+    private Vector3 lastAimTargetPosition;
+
     protected virtual void Awake()
     {
         if (aimReticle != null) aimReticle.gameObject.SetActive(false);
@@ -48,9 +53,16 @@ public abstract class DragAimButton : MonoBehaviour, IPointerDownHandler, IDragH
         UpdateAim(eventData);
     }
 
+    // Cách vẽ hồng tâm. Mặc định: nhảy tới đúng vị trí đích, dùng cho các chiêu chọn 1 ĐIỂM trên bản đồ
+    // (Bomb/Potion/Blink). Subclass override lại nếu chiêu chỉ cần HƯỚNG (xem LaserButton).
+    protected virtual void ApplyAimVisual(Vector3 targetPosition, Vector3 worldDelta)
+    {
+        aimReticle.position = targetPosition;
+    }
+
     private void UpdateAim(PointerEventData eventData)
     {
-        if (aimReticle != null && Camera.main != null && Player.Instance != null)
+        if (Camera.main != null && Player.Instance != null)
         {
             Vector3 pressWorldPos = Camera.main.ScreenToWorldPoint(pressScreenPos);
             Vector3 currentWorldPos = Camera.main.ScreenToWorldPoint(eventData.position);
@@ -72,7 +84,9 @@ public abstract class DragAimButton : MonoBehaviour, IPointerDownHandler, IDragH
 
             Vector3 targetPos = Player.Instance.transform.position + worldDelta;
             targetPos.z = 0f;
-            aimReticle.position = targetPos;
+            lastAimTargetPosition = targetPos;
+
+            if (aimReticle != null) ApplyAimVisual(targetPos, worldDelta);
         }
 
         // Kiểm tra xem ngón tay có nằm trong vùng Hủy (Cancel Zone) không
@@ -98,9 +112,9 @@ public abstract class DragAimButton : MonoBehaviour, IPointerDownHandler, IDragH
         if (aimReticle != null) aimReticle.gameObject.SetActive(false);
 
         // Xác nhận nếu nhả ngón tay ngoài vùng hủy
-        if (!isHoveringCancel && aimReticle != null)
+        if (!isHoveringCancel)
         {
-            OnConfirm(aimReticle.position);
+            OnConfirm(lastAimTargetPosition);
         }
 
         isHoveringCancel = false;

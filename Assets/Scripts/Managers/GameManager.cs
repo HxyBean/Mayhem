@@ -50,6 +50,8 @@ public class GameManager : MonoBehaviour
 
     // Private Fields
     private int currentEnergy = 0;
+    // Số phase Boss ĐÃ HẠ (tiến trình của thanh "USB"). Tăng ngay lúc Boss chết chứ không phải lúc nhặt vật
+    // phẩm USB - tên field/thanh UI giữ nguyên chữ "USB" để không phải nối lại tham chiếu trong Inspector.
     private int currentUSB = 0;
     private float currentXP = 0f;
     private float expMultiplier = 1f; // 100% kinh nghiệm
@@ -205,6 +207,11 @@ public class GameManager : MonoBehaviour
             GameProgress.CompleteStage(currentStage.stageIndex);
         }
 
+        // PHẢI gom trước CommitRunCurrency(). Thắng xảy ra ngay lúc hạ Boss cuối nên Time.timeScale về 0 đúng
+        // vào lúc phần thưởng vừa rơi ra - người chơi không còn cơ hội chạy tới nhặt, đặc biệt là viên kim cương
+        // phá đảo lần đầu (bỏ lỡ là mất vĩnh viễn vì Stage đã được đánh dấu hoàn thành).
+        CollectDroppedCurrency();
+
         CommitRunCurrency();
 
         SetActiveMenu(winMenu);
@@ -234,40 +241,6 @@ public class GameManager : MonoBehaviour
         if (currentEnergy >= energyThreshold)
         {
             CallBoss();
-        }
-    }
-
-    public void AddUSB()
-    {
-        currentUSB += 1;
-        UpdateUsbBar();
-
-        if (Player.Instance != null)
-        {
-            Player.Instance.RestoreFullHP();
-        }
-
-        if (currentUSB >= usbThreshold)
-        {
-            WinGame();
-        }
-        else
-        {
-            // Hiệu ứng revive boss (tồn tại 3 giây)
-            if (bossRevive != null)
-            {
-                GameObject reviveObj;
-                if (ObjectPoolManager.Instance != null)
-                {
-                    reviveObj = ObjectPoolManager.Instance.SpawnObject(bossRevive, boss.transform.position, Quaternion.identity);
-                }
-                else
-                {
-                    reviveObj = Instantiate(bossRevive, boss.transform.position, Quaternion.identity);
-                }
-                StartCoroutine(DestroyAfterDelay(reviveObj, 3f));
-            }
-            StartCoroutine(DelayedBossSpawn(2.0f));
         }
     }
 
@@ -323,19 +296,21 @@ public class GameManager : MonoBehaviour
     // ==============================================
     // KIM CƯƠNG (phần thưởng phá đảo lần đầu)
     // ==============================================
-    // Boss sắp bị hạ có phải lần CUỐI trong ván không: viên USB rơi ra lần này nhặt vào sẽ đủ ngưỡng thắng.
-    // VD usbThreshold = 3: lần chết 1 (currentUSB=0) và 2 (=1) đều false, chỉ lần 3 (=2) mới true.
-    private bool IsFinalBossKill()
+    // Boss vừa bị hạ có phải phase ĐẦU TIÊN của ván không.
+    // PHỤ THUỘC THỨ TỰ: BossEnemy.Die() gọi DropItems() (nơi dùng hàm này) TRƯỚC OnBossDefeated() (nơi tăng
+    // currentUSB), nên ngay tại phase đầu tiên currentUSB vẫn đang là 0.
+    private bool IsFirstBossKill()
     {
-        return currentUSB + 1 >= usbThreshold;
+        return currentUSB == 0;
     }
 
-    // Kim cương CHỈ rơi khi: đây là lần hạ Boss cuối cùng của ván VÀ đây là lần đầu phá đảo Stage này
-    // (chưa từng thắng, và cũng chưa từng nhặt kim cương của Stage này ở lần chơi trước đó).
+    // Kim cương CHỈ rơi ở phase Boss ĐẦU TIÊN, và chỉ trong lần đầu chinh phục Stage này.
+    // Rơi ở phase đầu (thay vì phase cuối) vì hạ Boss phase cuối là thắng luôn -> Time.timeScale về 0 ngay lúc
+    // kim cương vừa rơi ra, người chơi không kịp chạy tới nhặt. Rơi sớm thì có cả ván để thong thả nhặt.
     public bool ShouldDropDiamond()
     {
         if (currentStage == null) return false;
-        if (!IsFinalBossKill()) return false;
+        if (!IsFirstBossKill()) return false;
         if (GameProgress.IsStageCompleted(currentStage.stageIndex)) return false;
 
         return !GameProgress.IsStageDiamondClaimed(currentStage.stageIndex);
@@ -361,6 +336,28 @@ public class GameManager : MonoBehaviour
         OnRunCurrencyChanged?.Invoke();
     }
 
+    // Gom mọi Coin/Kim cương còn nằm trên bản đồ vào ví của ván, coi như người chơi đã nhặt hết.
+    // FindGameObjectsWithTag chỉ trả về object ĐANG BẬT nên không đụng tới các vật phẩm đang nằm sẵn trong Pool.
+    private void CollectDroppedCurrency()
+    {
+        CollectDroppedCurrencyWithTag("Coin");
+        CollectDroppedCurrencyWithTag("Diamond");
+    }
+
+    private void CollectDroppedCurrencyWithTag(string tag)
+    {
+        GameObject[] droppedItems = GameObject.FindGameObjectsWithTag(tag);
+
+        foreach (GameObject item in droppedItems)
+        {
+            CurrencyPickup pickup = item.GetComponent<CurrencyPickup>();
+            if (pickup != null) pickup.Collect();
+
+            if (ObjectPoolManager.Instance != null) ObjectPoolManager.Instance.ReturnObjectToPool(item);
+            else Destroy(item);
+        }
+    }
+
     // Cộng tiền nhặt trong ván vào tổng đã lưu. CHỈ gọi khi ván kết thúc hợp lệ (thắng hoặc chết) - thoát giữa
     // chừng thì cố tình KHÔNG gọi, người chơi mất trắng số tiền của ván đó.
     private void CommitRunCurrency()
@@ -381,10 +378,36 @@ public class GameManager : MonoBehaviour
         GameProgress.SaveNow();
     }
 
+    // Gọi từ BossEnemy.Die(). Tiến trình phá đảo tính theo SỐ PHASE BOSS ĐÃ HẠ, cộng ngay tại đây - không còn
+    // phụ thuộc việc người chơi có nhặt vật phẩm USB hay không (cách cũ tạo lỗ hổng: cứ bỏ USB dưới đất là kẹt
+    // phase vĩnh viễn mà vẫn farm coin/kinh nghiệm từ quái thường vô hạn).
     public void OnBossDefeated()
     {
-        IsBossCalled = false;
-        boss.SetActive(false);
+        currentUSB += 1;
+        UpdateUsbBar();
+
+        if (currentUSB >= usbThreshold)
+        {
+            WinGame();
+            return;
+        }
+
+        SpawnBossWarningThenCallBoss();
+    }
+
+    // Hiện hiệu ứng cảnh báo Boss sắp xuất hiện, rồi mới thật sự gọi Boss
+    private void SpawnBossWarningThenCallBoss()
+    {
+        if (bossRevive != null)
+        {
+            GameObject reviveObj = ObjectPoolManager.Instance != null
+                ? ObjectPoolManager.Instance.SpawnObject(bossRevive, boss.transform.position, Quaternion.identity)
+                : Instantiate(bossRevive, boss.transform.position, Quaternion.identity);
+
+            StartCoroutine(DestroyAfterDelay(reviveObj, 3f)); // Hiệu ứng cảnh báo tồn tại 3 giây
+        }
+
+        StartCoroutine(DelayedBossSpawn(2.0f)); // Boss xuất hiện sau khi hiệu ứng cảnh báo đã chạy được 2 giây
     }
 
     private IEnumerator DelayedBossSpawn(float delay)

@@ -54,6 +54,36 @@ public class Gun : MonoBehaviour
     [SerializeField] private GameObject potionButtonObj;   // Gán PotionButton vào đây
     [SerializeField] private Image potionCooldownBar;      // Gán Overlay Cooldown của PotionButton
 
+    [Header("Laser (Robot) - tích charge từ đòn bắn thường")]
+    [Tooltip("Số đòn bắn thường cần tích để dùng được 1 phát Laser")]
+    [SerializeField] private int laserChargeRequired = 10;
+    [Tooltip("Tầm bắn của Laser tính từ nòng súng")]
+    [SerializeField] private float laserRange = 12f;
+    [Tooltip("Bề rộng vùng trúng đòn của Laser - nên khớp với độ dày sprite hiệu ứng")]
+    [SerializeField] private float laserWidth = 1f;
+    [Tooltip("Hệ số sát thương so với sát thương gốc của Player")]
+    [SerializeField] private float laserDamageMultiplier = 1.5f;
+    [Tooltip("Prefab hiệu ứng/animation tia Laser - tự dọn qua AutoDestroyOrPool gắn sẵn trên prefab")]
+    [SerializeField] private GameObject laserEffectPrefab;
+    [Tooltip("GameObject nút bắn Laser - chỉ hiện với nhân vật không dùng đạn (Robot)")]
+    [SerializeField] private GameObject laserButtonObj;
+    [Tooltip("Nút bắn Laser - tự làm mờ khi chưa tích đủ charge. Có thể để trống")]
+    [SerializeField] private Button laserButton;
+    private int currentCharge = 0;
+
+    [Header("Mini Robot (lõi riêng của Robot)")]
+    [SerializeField] private GameObject miniRobotPrefab;
+    [SerializeField] private int miniRobotCount = 3;
+    [Tooltip("Khoảng cách lệch nhau giữa các con, tính theo trục vuông góc nòng súng (để không chồng lên nhau)")]
+    [SerializeField] private float miniRobotSpacing = 0.4f;
+    [Tooltip("Hệ số sát thương lúc nổ so với sát thương gốc của Player")]
+    [SerializeField] private float miniRobotDamageMultiplier = 2f;
+    [SerializeField] private float miniRobotCooldown = 20f;
+    [SerializeField] private GameObject miniRobotButtonObj;
+    [SerializeField] private Image miniRobotCooldownBar;
+    private bool hasMiniRobot = false;
+    private bool isMiniRobotOnCooldown = false;
+
     [Header("Character Visual/Audio Override")]
     [Tooltip("SpriteRenderer của vũ khí (súng/gậy phép) - đổi hình theo nhân vật được chọn")]
     [SerializeField] private SpriteRenderer weaponRenderer;
@@ -68,7 +98,21 @@ public class Gun : MonoBehaviour
     private AudioClip characterShootClip;  // null = dùng âm thanh mặc định của AudioManager (Gunner)
     private AudioClip characterReloadClip; // null = dùng âm thanh mặc định của AudioManager (Gunner)
 
+    // Nhân vật hiện tại có dùng đạn/mana không (lấy từ CharacterData.usesAmmo). Robot = false: bắn miễn phí,
+    // không nạp đạn, ô text đạn chuyển thành bộ đếm charge Laser.
+    private bool usesAmmo = true;
+
     private ContactFilter2D contactFilter;
+
+    // Vị trí gốc của vũ khí đặt sẵn trong Scene. Chốt ở Awake() để weaponOffset của từng nhân vật luôn cộng vào
+    // MỘT mốc cố định, không bị dồn thêm nếu ApplyCharacterData() chẳng may chạy nhiều lần.
+    // Dùng Awake chứ không phải Start vì Unity vẫn gọi Awake kể cả khi component đang bị disable (VD chọn Knight).
+    private Vector3 baseLocalPosition;
+
+    private void Awake()
+    {
+        baseLocalPosition = transform.localPosition;
+    }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -81,6 +125,10 @@ public class Gun : MonoBehaviour
         currentReloadTime = defaultReloadTime;
         if (bombButtonObj != null) bombButtonObj.SetActive(false);
         if (potionButtonObj != null) potionButtonObj.SetActive(false);
+        // Nút Mini Robot ẩn tới khi chọn được lõi (giống Bomb/Potion). KHÔNG đụng tới laserButtonObj ở đây:
+        // ApplyCharacterData() mới là nơi quyết định nút Laser hiện hay ẩn, mà Start() có thể chạy SAU hàm đó
+        // (Unity không đảm bảo thứ tự Start giữa các MonoBehaviour) nên ẩn ở đây sẽ ẩn nhầm nút của Robot.
+        if (miniRobotButtonObj != null) miniRobotButtonObj.SetActive(false);
     }
 
     // Update is called once per frame
@@ -91,9 +139,9 @@ public class Gun : MonoBehaviour
         {
             StartCoroutine(ExecuteReload());
         }
-        
+
         RotateGun();
-        
+
         if (!isMobile) Shoot();
 
         // Ném bom bằng phím R (PC)
@@ -163,7 +211,7 @@ public class Gun : MonoBehaviour
         int count = Physics2D.OverlapCircle(transform.position, autoAimRadius, contactFilter, enemyColliders);
         Transform closest = null;
         float minSqrDistance = float.MaxValue;
-        
+
         for (int i = 0; i < count; i++)
         {
             Collider2D col = enemyColliders[i];
@@ -180,9 +228,21 @@ public class Gun : MonoBehaviour
         return closest;
     }
 
+    // Nhân vật không dùng đạn (Robot) thì luôn đủ điều kiện bắn - chỉ bị giới hạn bởi shotDelay
+    private bool HasAmmo(int amount)
+    {
+        return !usesAmmo || currentAmmo >= amount;
+    }
+
+    private void ConsumeAmmo(int amount)
+    {
+        if (!usesAmmo) return;
+        currentAmmo -= amount;
+    }
+
     void Shoot()
     {
-        if (Input.GetMouseButtonDown(0) && currentAmmo > 0 && Time.time > nextShot && !isReloading)
+        if (Input.GetMouseButtonDown(0) && HasAmmo(1) && Time.time > nextShot && !isReloading)
         {
             PerformShoot();
         }
@@ -190,7 +250,7 @@ public class Gun : MonoBehaviour
 
     public void OnAttackButtonPressed()
     {
-        if (currentAmmo > 0 && Time.time > nextShot && !isReloading)
+        if (HasAmmo(1) && Time.time > nextShot && !isReloading)
         {
             PerformShoot();
         }
@@ -205,22 +265,23 @@ public class Gun : MonoBehaviour
         {
             case ShootMode.Normal:
                 SpawnBullet(firePos.position, firePos.rotation, currentDamage);
-                currentAmmo--;
+                ConsumeAmmo(1);
                 break;
 
             case ShootMode.Burst:
-                if (currentAmmo < 3) break; // Cần ít nhất 3 viên
-                ShootBurst(currentDamage * 0.8f); // Giảm 20% sát thương mỗi viên
-                currentAmmo -= 3;
+                if (!HasAmmo(3)) break; // Cần ít nhất 3 viên
+                ShootBurst(currentDamage * 0.4f); // Giảm 60% sát thương mỗi viên
+                ConsumeAmmo(3);
                 break;
 
             case ShootMode.Split:
-                if (currentAmmo < 3) break; // Cần ít nhất 3 viên
-                ShootSplit(currentDamage * 0.8f); // Giảm 20% sát thương mỗi viên
-                currentAmmo -= 3;
+                if (!HasAmmo(3)) break; // Cần ít nhất 3 viên
+                ShootSplit(currentDamage * 0.4f); // Giảm 60% sát thương mỗi viên
+                ConsumeAmmo(3);
                 break;
         }
 
+        AddLaserCharge();
         UpdateAmmoText();
         if (characterShootClip != null) audioManager.PlaySFX(characterShootClip);
         else audioManager.PlayShootSound();
@@ -388,6 +449,14 @@ public class Gun : MonoBehaviour
 
     private void UpdateAmmoText()
     {
+        // Nhân vật không dùng đạn (Robot): tận dụng luôn ô text này để hiện số charge đã tích cho Laser
+        if (!usesAmmo)
+        {
+            if (ammoText != null) ammoText.text = currentCharge + "/" + laserChargeRequired;
+            if (laserButton != null) laserButton.interactable = CanFireLaser();
+            return;
+        }
+
         if (ammoText != null)
         {
             if (currentAmmo > 0)
@@ -399,6 +468,90 @@ public class Gun : MonoBehaviour
                 ammoText.text = "EMPTY";
             }
         }
+    }
+
+    // ====== LASER (Robot) ======
+    // Mỗi đòn bắn thường tích 1 charge, đủ laserChargeRequired thì mở khóa 1 phát Laser
+    private void AddLaserCharge()
+    {
+        if (usesAmmo) return; // Chỉ nhân vật không dùng đạn mới có cơ chế charge
+
+        if (currentCharge < laserChargeRequired) currentCharge++;
+    }
+
+    public bool CanFireLaser()
+    {
+        return !usesAmmo && currentCharge >= laserChargeRequired;
+    }
+
+    // Laser là chiêu TỨC THÌ, không phải viên đạn bay: quét ngay 1 vùng chữ nhật theo hướng được chọn và gây
+    // sát thương cho MỌI Enemy nằm trong đó (xuyên thấu - không bị chặn lại ở con đầu tiên).
+    // Hướng do LaserButton truyền vào (kéo thả chọn hướng), KHÔNG lấy theo nòng súng nữa.
+    public void FireLaser(Vector2 direction)
+    {
+        if (!CanFireLaser()) return;
+        if (direction.sqrMagnitude < 0.0001f) return;
+
+        direction = direction.normalized;
+        currentCharge = 0;
+        UpdateAmmoText();
+
+        float baseDamage = (Player.Instance != null) ? Player.Instance.bulletDamage : 10f;
+        float laserDamage = baseDamage * laserDamageMultiplier;
+
+        // Bắn từ tâm NHÂN VẬT chứ không phải nòng súng: súng vẫn tự auto-aim vào con gần nhất nên có thể đang
+        // chĩa hẳn hướng khác với hướng vừa kéo - lấy nòng súng làm gốc sẽ thấy tia mọc ra từ phía sau lưng.
+        Vector2 origin = (Player.Instance != null) ? (Vector2)Player.Instance.transform.position : (Vector2)firePos.position;
+        Vector2 center = origin + direction * (laserRange * 0.5f);
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+
+        Collider2D[] hits = Physics2D.OverlapBoxAll(center, new Vector2(laserRange, laserWidth), angle);
+        foreach (Collider2D hit in hits)
+        {
+            if (!hit.CompareTag("Enemy")) continue;
+
+            Enemy enemy = hit.GetComponent<Enemy>();
+            if (enemy == null) continue;
+
+            enemy.TakeDmg(laserDamage);
+            if (Player.Instance != null) Player.Instance.OnEnemyHit(laserDamage);
+        }
+
+        SpawnLaserEffect(origin, angle);
+    }
+
+    private void SpawnLaserEffect(Vector3 position, float angle)
+    {
+        if (laserEffectPrefab == null) return;
+
+        Quaternion rotation = Quaternion.Euler(0f, 0f, angle);
+        GameObject effect = ObjectPoolManager.Instance != null
+            ? ObjectPoolManager.Instance.SpawnObject(laserEffectPrefab, position, rotation)
+            : Instantiate(laserEffectPrefab, position, rotation);
+
+        // Gắn làm con của Player để tia bám theo nhân vật lúc đang chạy, thay vì đứng lại chỗ vừa bắn - cùng
+        // cách với hiệu ứng chém tự động của Knight (KnightCombat.SpawnEffect với attachToPlayer = true).
+        // Gắn vào PLAYER chứ không phải Gun: Gun tự xoay auto-aim liên tục, gắn vào đó thì tia sẽ quay theo nòng.
+        // Player chỉ lật sprite bằng flipX chứ không xoay transform nên hướng tia giữ nguyên.
+        // ObjectPoolManager.ReturnObjectToPool() tự gỡ parent trước khi trả về Pool nên không cần dọn thủ công.
+        if (effect != null && Player.Instance != null)
+        {
+            effect.transform.SetParent(Player.Instance.transform);
+            effect.transform.localPosition = Vector3.zero;
+        }
+    }
+
+    // Vẽ vùng trúng đòn của Laser trong Editor để căn cho khớp sprite hiệu ứng.
+    // Vẽ từ tâm nhân vật vì Laser bắn từ đó (xem FireLaser); hướng lấy tạm theo nòng súng để xem tỉ lệ dài/rộng.
+    private void OnDrawGizmosSelected()
+    {
+        if (firePos == null) return;
+
+        Vector3 origin = (transform.parent != null) ? transform.parent.position : transform.position;
+
+        Gizmos.color = Color.cyan;
+        Gizmos.matrix = Matrix4x4.TRS(origin + firePos.right * (laserRange * 0.5f), firePos.rotation, Vector3.one);
+        Gizmos.DrawWireCube(Vector3.zero, new Vector3(laserRange, laserWidth, 0f));
     }
 
     // ====== PUBLIC METHODS (Gọi từ AugmentManager) ======
@@ -474,6 +627,73 @@ public class Gun : MonoBehaviour
         isPotionOnCooldown = false;
     }
 
+    public void EnableMiniRobot()
+    {
+        hasMiniRobot = true;
+        isMiniRobotOnCooldown = false;
+        if (miniRobotButtonObj != null) miniRobotButtonObj.SetActive(true);
+        Debug.Log("Đã mở khóa Mini Robot!");
+    }
+
+    public bool CanReleaseMiniRobot()
+    {
+        return hasMiniRobot && !isMiniRobotOnCooldown;
+    }
+
+    // Gán vào OnClick của nút Mini Robot
+    public void OnMiniRobotButtonPressed()
+    {
+        if (!CanReleaseMiniRobot()) return;
+
+        ReleaseMiniRobots();
+        StartCoroutine(MiniRobotCooldownCoroutine());
+    }
+
+    // Thả 3 con robot nhỏ cùng chạy theo hướng nòng súng, xếp lệch nhau theo trục vuông góc để không chồng lên
+    // nhau (cùng kỹ thuật với ShootBurst).
+    private void ReleaseMiniRobots()
+    {
+        if (miniRobotPrefab == null) return;
+
+        float baseDamage = (Player.Instance != null) ? Player.Instance.bulletDamage : 10f;
+        float explodeDamage = baseDamage * miniRobotDamageMultiplier;
+        Vector3 perpendicular = firePos.up;
+
+        for (int i = 0; i < miniRobotCount; i++)
+        {
+            float offset = (i - (miniRobotCount - 1) * 0.5f) * miniRobotSpacing;
+            Vector3 spawnPos = firePos.position + perpendicular * offset;
+
+            GameObject robotObj = ObjectPoolManager.Instance != null
+                ? ObjectPoolManager.Instance.SpawnObject(miniRobotPrefab, spawnPos, firePos.rotation)
+                : Instantiate(miniRobotPrefab, spawnPos, firePos.rotation);
+
+            MiniRobot miniRobot = robotObj.GetComponent<MiniRobot>();
+            if (miniRobot != null) miniRobot.SetDamage(explodeDamage);
+        }
+    }
+
+    private IEnumerator MiniRobotCooldownCoroutine()
+    {
+        isMiniRobotOnCooldown = true;
+
+        float timer = 0f;
+        if (miniRobotCooldownBar != null) miniRobotCooldownBar.fillAmount = 1f;
+
+        while (timer < miniRobotCooldown)
+        {
+            timer += Time.deltaTime;
+            if (miniRobotCooldownBar != null)
+            {
+                miniRobotCooldownBar.fillAmount = 1f - (timer / miniRobotCooldown);
+            }
+            yield return null;
+        }
+
+        if (miniRobotCooldownBar != null) miniRobotCooldownBar.fillAmount = 0f;
+        isMiniRobotOnCooldown = false;
+    }
+
     public void AddAmmo(int amount)
     {
         maxAmmo += amount;
@@ -511,6 +731,8 @@ public class Gun : MonoBehaviour
         {
             if (bombButtonObj != null) bombButtonObj.SetActive(false);
             if (potionButtonObj != null) potionButtonObj.SetActive(false);
+            if (laserButtonObj != null) laserButtonObj.SetActive(false);
+            if (miniRobotButtonObj != null) miniRobotButtonObj.SetActive(false);
         }
     }
 
@@ -526,6 +748,22 @@ public class Gun : MonoBehaviour
 
         characterShootClip = character.shootSound;
         characterReloadClip = character.reloadSound;
+
+        // Nhịp bắn riêng từng nhân vật (0 = giữ nguyên mặc định trên Gun trong Scene), cùng quy ước với
+        // baseMaxHP/baseMoveSpeed bên Player. Gán thẳng chứ không cộng dồn nên gọi lại nhiều lần vẫn an toàn.
+        if (character.shotDelay > 0f) shotDelay = character.shotDelay;
+
+        // Nhân vật cao/thấp khác nhau nên vị trí cầm vũ khí cũng khác. Luôn tính từ baseLocalPosition (mốc gốc
+        // trong Scene) thay vì cộng vào vị trí hiện tại, để không bị dồn offset.
+        transform.localPosition = baseLocalPosition + (Vector3)character.weaponOffset;
+
+        // Robot (usesAmmo = false): đổi nút Nạp đạn thành nút Laser, ô text đạn thành bộ đếm charge.
+        // SetActive() ở trên đã bật sẵn nút Nạp đạn nên phải ẩn lại tại đây (SetActive luôn chạy trước hàm này).
+        usesAmmo = character.usesAmmo;
+        currentCharge = 0;
+        if (reloadButtonObj != null) reloadButtonObj.SetActive(usesAmmo);
+        if (laserButtonObj != null) laserButtonObj.SetActive(!usesAmmo);
+        UpdateAmmoText();
     }
 
     private bool isManaRegenActive = false;

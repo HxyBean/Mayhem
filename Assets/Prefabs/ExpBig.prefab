@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1433226058137096456}
   - component: {fileID: 5679299438973608849}
   - component: {fileID: 3997990001090613722}
+  - component: {fileID: -7509919964843253048}
   m_Layer: 0
   m_Name: ExpBig
   m_TagString: ExpBig
@@ -151,3 +152,16 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.25
+--- !u!114 &-7509919964843253048
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1773101773148576407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d749b5e61014206408d8ded7c8b13825, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Pickup
+  magnetSpeed: 8

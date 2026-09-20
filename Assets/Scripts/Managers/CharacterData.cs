@@ -50,6 +50,14 @@ public class CharacterData : ScriptableObject
     [Tooltip("Prefab đạn riêng của nhân vật này (chỉ áp dụng cho Combat Type = Ranged)")]
     public GameObject bulletPrefab;
 
+    [Tooltip("Có dùng cơ chế đạn/mana + nạp đạn không. BỎ TICK (VD Robot) = bắn không tốn đạn, ẩn nút Nạp đạn, " +
+             "và ô text đạn được tận dụng để đếm charge cho chiêu Laser. Khi đó chỉ còn Shot Delay giới hạn nhịp bắn.")]
+    public bool usesAmmo = true;
+
+    [Tooltip("Khoảng nghỉ giữa 2 đòn bắn (giây) riêng của nhân vật này - VD Robot bắn không tốn đạn nên cần nghỉ " +
+             "lâu hơn (0.25-0.5). Để 0 = giữ nguyên giá trị mặc định đang set sẵn trên Gun trong Scene.")]
+    public float shotDelay = 0f;
+
     [Tooltip("Khả năng di chuyển đặc biệt: Dash (Gunner), Blink (Mage), hoặc None (Knight - không có)")]
     public AbilityType abilityType = AbilityType.Dash;
 
@@ -60,9 +68,18 @@ public class CharacterData : ScriptableObject
     [Tooltip("Sprite mặc định gán ngay lúc bắt đầu, tránh lóe hình nhân vật cũ 1 frame trước khi Animator kịp chạy. Có thể để trống nếu Animator Controller đã tự có state Idle mặc định.")]
     public Sprite idleSprite;
 
+    [Tooltip("Ảnh chân dung hiển thị ở màn Chọn nhân vật. BẮT BUỘC có nếu dùng CharacterSelectPager, vì các ô nút " +
+             "được dùng chung cho mọi nhân vật nên ảnh phải lấy từ đây. Để trống = giữ nguyên ảnh đang gán sẵn trên ô.")]
+    public Sprite selectIcon;
+
     [Header("Vũ khí (chỉ dùng cho Combat Type = Ranged)")]
     [Tooltip("Hình ảnh vũ khí riêng (VD gậy phép thay vì súng). Để trống = giữ nguyên sprite súng đang gắn sẵn.")]
     public Sprite weaponSprite;
+
+    [Tooltip("Dịch vị trí vũ khí so với chỗ đặt sẵn trong Scene, dùng khi nhân vật cao/thấp khác nhau làm súng bị " +
+             "lệch lên/xuống. Là ĐỘ LỆCH chứ không phải toạ độ tuyệt đối: (0,0) = giữ nguyên như Scene, " +
+             "(0, 0.3) = nâng súng cao thêm 0.3. Vũ khí xoay quanh chính điểm này nên nó cũng là tâm xoay của nòng.")]
+    public Vector2 weaponOffset = Vector2.zero;
 
     [Header("Âm thanh (để trống = dùng âm thanh mặc định của Gunner)")]
     public AudioClip shootSound;

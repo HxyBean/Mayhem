@@ -130,7 +130,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Bomb
   moveSpeed: 15
   explosionRadius: 3
-  damageMultiplier: 5
+  damageMultiplier: 2
   explosionPrefab: {fileID: 6793335813140051403, guid: 412fc85a645a82043aa64b7fdad77184, type: 3}
 --- !u!58 &170271276547004446
 CircleCollider2D:
