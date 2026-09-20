@@ -3,12 +3,15 @@ using UnityEngine.UI;
 
 public class AudioManager : MonoBehaviour
 {
+    public static AudioManager Instance { get; private set; }
     [SerializeField] private AudioSource effectAudioSource;
     [SerializeField] private AudioSource defaultAudioSource;
     [SerializeField] private AudioSource bossAudioSource;
     [SerializeField] private AudioClip shootClip;
     [SerializeField] private AudioClip energyClip;
     [SerializeField] private AudioClip reLoadClip;
+    [SerializeField] private AudioClip BombClip;
+    [SerializeField] private AudioClip LaserClip;
 
     [Header("Master Mute Button Settings")]
     [SerializeField] private Image muteButtonImage;
@@ -32,6 +35,16 @@ public class AudioManager : MonoBehaviour
 
     private bool isEffectMuted = false;
     private float previousEffectVolume = 1f;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
 
     private void Start()
     {
@@ -60,6 +73,14 @@ public class AudioManager : MonoBehaviour
     public void PlayEnergySound()
     {
         effectAudioSource.PlayOneShot(energyClip);
+    }
+    public void PlayBombSound()
+    {
+        effectAudioSource.PlayOneShot(BombClip);
+    }
+    public void PlayLaserSound()
+    {
+        effectAudioSource.PlayOneShot(LaserClip);
     }
     public void PlayDefaultAudio()
     {
@@ -113,24 +134,24 @@ public class AudioManager : MonoBehaviour
             // Lưu lại mức âm lượng hiện tại trước khi tắt
             previousVolume = AudioListener.volume > 0f ? AudioListener.volume : 1f;
             AudioListener.volume = 0f;
-            
+
             // Đổi hình nút sang Tắt tiếng
             if (muteButtonImage != null && soundOffSprite != null)
                 muteButtonImage.sprite = soundOffSprite;
-            
+
             // Đồng bộ kéo thanh Slider về 0 (nhưng không kích hoạt SetMasterVolume lại làm mất logic)
             if (volumeSlider != null)
-                volumeSlider.SetValueWithoutNotify(0f); 
+                volumeSlider.SetValueWithoutNotify(0f);
         }
         else
         {
             // Khôi phục mức âm lượng
             AudioListener.volume = previousVolume;
-            
+
             // Đổi hình nút sang Bật tiếng
             if (muteButtonImage != null && soundOnSprite != null)
                 muteButtonImage.sprite = soundOnSprite;
-            
+
             // Trả thanh Slider về vị trí cũ
             if (volumeSlider != null)
                 volumeSlider.SetValueWithoutNotify(previousVolume);

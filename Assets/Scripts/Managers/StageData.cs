@@ -11,6 +11,10 @@ public class StageData : ScriptableObject
 
     public string stageName = "Level 1";
 
+    [Tooltip("Ảnh thu nhỏ hiển thị ở màn Chọn Level. BẮT BUỘC có nếu dùng StageSelectPager, vì các ô nút được " +
+             "dùng chung cho mọi Level nên ảnh phải lấy từ đây. Để trống = giữ nguyên ảnh đang gán sẵn trên ô.")]
+    public Sprite previewImage;
+
     [Tooltip("Tên Scene tương ứng, phải trùng chính xác tên đã thêm vào File > Build Settings > Scenes In Build")]
     public string sceneName;
 

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &5274204108618876423
+--- !u!1 &986469248348087407
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,41 +8,42 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6569617562583511554}
-  - component: {fileID: 7162349008319067756}
-  - component: {fileID: 3051007217063696524}
-  - component: {fileID: -3250244396880662533}
-  - component: {fileID: -203937070292732057}
+  - component: {fileID: 2859302622333340671}
+  - component: {fileID: 9050499214076954581}
+  - component: {fileID: 3620121420408749707}
+  - component: {fileID: 6394196147534395305}
+  - component: {fileID: 3602558506243264455}
+  - component: {fileID: 2460765281211613020}
   m_Layer: 0
-  m_Name: exp_small
-  m_TagString: ExpSmall
+  m_Name: MiniRobot
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6569617562583511554
+--- !u!4 &2859302622333340671
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5274204108618876423}
+  m_GameObject: {fileID: 986469248348087407}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.18, y: -1.09, z: 0}
+  m_LocalPosition: {x: 1.4634385, y: -1.8564136, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &7162349008319067756
+--- !u!212 &9050499214076954581
 SpriteRenderer:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5274204108618876423}
+  m_GameObject: {fileID: 986469248348087407}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -80,27 +81,65 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: -2099618307
-  m_SortingLayer: 7
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -3849189375939416966, guid: ef29cee03fb185742a35e51726c14534, type: 3}
+  m_Sprite: {fileID: -2394301353303163844, guid: f3bf6825c260f5940a73dedb5045d837, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1.52, y: 1.52}
+  m_Size: {x: 1.4375, y: 1.4375}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!58 &3051007217063696524
-CircleCollider2D:
+--- !u!95 &3620121420408749707
+Animator:
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5274204108618876423}
+  m_GameObject: {fileID: 986469248348087407}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: d843b3c861d7973429b636a141638180, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &6394196147534395305
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 986469248348087407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba5cf612a90724244a2ec53b7c895af1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MiniRobot
+  moveSpeed: 6
+  timeDestroy: 5
+  explosionRadius: 2
+  explosionPrefab: {fileID: 6793335813140051403, guid: 412fc85a645a82043aa64b7fdad77184, type: 3}
+--- !u!61 &3602558506243264455
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 986469248348087407}
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
@@ -128,31 +167,42 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_Radius: 0.16888888
---- !u!114 &-3250244396880662533
-MonoBehaviour:
+  m_Offset: {x: -0.03223118, y: -0.022562027}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 1.4375, y: 1.4375}
+    newSize: {x: 1.4375, y: 1.4375}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 0.9346886, y: 1.0571685}
+  m_EdgeRadius: 0
+--- !u!50 &2460765281211613020
+Rigidbody2D:
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5274204108618876423}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 00183195d03223f4ebb1ac65245251a6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AutoDestroyOrPool
-  lifetime: 99999
---- !u!114 &-203937070292732057
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5274204108618876423}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d749b5e61014206408d8ded7c8b13825, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Pickup
-  magnetSpeed: 8
+  m_GameObject: {fileID: 986469248348087407}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0

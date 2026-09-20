@@ -14,7 +14,7 @@ public class BossEnemy : Enemy
     [SerializeField] private GameObject miniEnemy;
     [SerializeField] private GameObject usbPrefabs;
     [SerializeField] private GameObject bulletPrefabs;
-    [Tooltip("Prefab Kim cương - chỉ rơi ở lần hạ gục CUỐI CÙNG và CHỈ trong lần đầu phá đảo Stage này (xem GameManager.ShouldDropDiamond)")]
+    [Tooltip("Prefab Kim cương - chỉ rơi ở phase ĐẦU TIÊN và CHỈ trong lần đầu chinh phục Stage này (xem GameManager.ShouldDropDiamond)")]
     [SerializeField] private GameObject diamondPrefabs;
 
     [Header("Teleport Skill")]
@@ -53,9 +53,9 @@ public class BossEnemy : Enemy
     {
         if (player != null)
         {
-            Vector3 directionToPlayer = player.transform.position - firePos.position; 
+            Vector3 directionToPlayer = player.transform.position - firePos.position;
             directionToPlayer.Normalize();
-            
+
             GameObject bullet;
             if (ObjectPoolManager.Instance != null)
                 bullet = ObjectPoolManager.Instance.SpawnObject(bulletPrefabs, firePos.position, Quaternion.identity);
@@ -77,7 +77,7 @@ public class BossEnemy : Enemy
         {
             float angle = i * angleStep;
             Vector3 bulletDirection = new Vector3(Mathf.Cos(Mathf.Deg2Rad * angle), Mathf.Sin(Mathf.Deg2Rad * angle), 0);
-            
+
             GameObject bullet;
             if (ObjectPoolManager.Instance != null)
                 bullet = ObjectPoolManager.Instance.SpawnObject(bulletPrefabs, firePos.position, Quaternion.identity);
@@ -85,7 +85,7 @@ public class BossEnemy : Enemy
                 bullet = Instantiate(bulletPrefabs, firePos.position, Quaternion.identity);
 
             EnemyBullet enemyBullet = bullet.GetComponent<EnemyBullet>();
-            if (enemyBullet == null) enemyBullet = bullet.AddComponent<EnemyBullet>(); 
+            if (enemyBullet == null) enemyBullet = bullet.AddComponent<EnemyBullet>();
 
             enemyBullet.SetMovementDirection(bulletDirection * speedCircleBullet);
         }
@@ -117,7 +117,7 @@ public class BossEnemy : Enemy
             {
                 Vector2 randomOffset = Random.insideUnitCircle * spawnRadius;
                 Vector3 spawnPosition = transform.position + (Vector3)randomOffset;
-                
+
                 if (ObjectPoolManager.Instance != null) ObjectPoolManager.Instance.SpawnObject(miniEnemy, spawnPosition, Quaternion.identity);
                 else Instantiate(miniEnemy, spawnPosition, Quaternion.identity);
             }
@@ -217,7 +217,7 @@ public class BossEnemy : Enemy
         if (xpObject != null) SpawnItem(xpObject); // 1 Boss Exp
 
         // Boss KHÔNG rơi coin như quái thường (Die() của Boss không gọi base.Die() nên không dính DropCoin),
-        // thay vào đó rơi kim cương - nhưng chỉ đúng 1 lần duy nhất ở lần phá đảo đầu tiên của Stage này.
+        // thay vào đó rơi kim cương - đúng 1 lần duy nhất, ở phase đầu tiên của lần đầu chinh phục Stage này.
         if (diamondPrefabs != null && GameManager.Instance != null && GameManager.Instance.ShouldDropDiamond())
         {
             SpawnItem(diamondPrefabs);
@@ -233,9 +233,13 @@ public class BossEnemy : Enemy
 
         // Chuẩn bị máu cho lần revive tiếp theo - nhân vào giá trị GỐC (trước hệ số độ khó Stage)
         // để lần OnEnable sau tính lại đúng: maxHP = baseMaxHP (đã x1.5) * hệ số độ khó Stage
-        baseMaxHP *= 1.5f;
+        baseMaxHP *= 1.2f;
 
-        // Tắt boss - GameManager sẽ bật lại khi Player nhặt USB
+        // Báo GameManager cộng tiến trình phase Boss + gọi phase kế tiếp (hoặc kết thúc ván nếu đây là phase cuối).
+        // PHẢI gọi SAU DropItems() vì ShouldDropDiamond() ở trên cần currentUSB của GameManager chưa bị tăng.
+        if (GameManager.Instance != null) GameManager.Instance.OnBossDefeated();
+
+        // Tắt boss - GameManager sẽ bật lại ở phase kế tiếp
         gameObject.SetActive(false);
     }
 }

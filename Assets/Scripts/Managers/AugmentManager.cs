@@ -54,10 +54,10 @@ public class AugmentManager : MonoBehaviour
     {
         // Augment dùng chung cho MỌI nhân vật. Augment riêng theo súng/phép (Ammo, Regen, Reload, Bomb,
         // BurstShot, SplitShot, Mana...) nằm trong CharacterData.exclusiveAugments, cộng vào qua ApplyCharacterData().
-        augmentPool.Add(new Augment { name = "DAMAGE", description = "+2.5 Damage", type = "Damage", requiredLevel = 1 });
-        augmentPool.Add(new Augment { name = "SPEED", description = "+10% Speed", type = "Speed", requiredLevel = 1 });
+        augmentPool.Add(new Augment { name = "DAMAGE", description = "+2 Damage", type = "Damage", requiredLevel = 1 });
+        augmentPool.Add(new Augment { name = "SPEED", description = "+2.5% Speed", type = "Speed", requiredLevel = 1 });
         augmentPool.Add(new Augment { name = "HEALTH", description = "+20 Max Health", type = "Health", requiredLevel = 1 });
-        augmentPool.Add(new Augment { name = "LIFE STEAL", description = "+5% Life Steal", type = "LifeSteal", requiredLevel = 5 });
+        augmentPool.Add(new Augment { name = "LIFE STEAL", description = "+1.5% Life Steal", type = "LifeSteal", requiredLevel = 5 });
         augmentPool.Add(new Augment { name = "EXP", description = "+20% XP Value", type = "Exp", requiredLevel = 1 });
         augmentPool.Add(new Augment { name = "MAGNET", description = "+1.5 Item Pickup Radius", type = "Magnet", requiredLevel = 4 });
     }
@@ -280,6 +280,13 @@ public class AugmentManager : MonoBehaviour
             Debug.Log("Đã chọn Potion, xóa khỏi danh sách lựa chọn.");
         }
 
+        // Nếu chọn Mini Robot -> Xóa khỏi pool (lõi mở khóa, chỉ chọn được 1 lần)
+        if (type == "MiniRobot")
+        {
+            augmentPool.RemoveAll(a => a.type == "MiniRobot");
+            Debug.Log("Đã chọn Mini Robot, xóa khỏi danh sách lựa chọn.");
+        }
+
         // Nếu chọn Xoay Kiếm -> Xóa khỏi pool + mở khóa thêm augment giảm cooldown của nó (nếu Knight có cấu hình)
         if (type == "SwordSpin")
         {
@@ -312,11 +319,11 @@ public class AugmentManager : MonoBehaviour
         switch (type)
         {
             case "Damage":
-                player.IncreaseDamage(2.5f);
+                player.IncreaseDamage(2f);
                 ui.UpdateDmgText();
                 break;
             case "Speed":
-                player.ApplyMoveSpeedBoost(1.1f);
+                player.ApplyMoveSpeedBoost(1.025f);
                 break;
             case "Health":
                 player.ApplyMaxHPBoost(20);
@@ -333,7 +340,7 @@ public class AugmentManager : MonoBehaviour
                 bullet.ReduceReloadTime(0.5f);
                 break;
             case "LifeSteal":
-                player.AddLifeSteal(0.05f); // Cộng thêm 5% mỗi lần chọn
+                player.AddLifeSteal(0.015f); // Cộng thêm 5% mỗi lần chọn
                 ui.UpdateLifeStealText();
                 break;
             case "Exp":
@@ -355,6 +362,11 @@ public class AugmentManager : MonoBehaviour
                 break;
             case "Potion":
                 bullet.EnablePotion();
+                break;
+
+            // === AUGMENT RIÊNG CỦA ROBOT ===
+            case "MiniRobot":
+                bullet.EnableMiniRobot();
                 break;
 
             // === AUGMENT RIÊNG CỦA KNIGHT ===
@@ -386,7 +398,7 @@ public class AugmentManager : MonoBehaviour
                 break;
             // === LÕI STAGE 2-3 ===
             case "PercentDamage":
-                player.IncreaseDamagePercent(1.2f); // Nhân dồn +20% sát thương mỗi lần chọn
+                player.IncreaseDamagePercent(1.1f); // Nhân dồn +20% sát thương mỗi lần chọn
                 ui.UpdateDmgText();
                 break;
         }

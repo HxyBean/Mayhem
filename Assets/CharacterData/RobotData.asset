@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb5b46c5281f6e842918e28b0a0379ac, type: 3}
+  m_Name: RobotData
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterData
+  characterName: Robot
+  unlockedByDefault: 0
+  coinPrice: 1
+  diamondPrice: 3
+  baseBulletDamage: 50
+  baseMaxHP: 150
+  baseMoveSpeed: 4.5
+  combatType: 0
+  bulletPrefab: {fileID: 6102857613693667754, guid: cfc4ce040f8c7334595c116db5803b4b, type: 3}
+  usesAmmo: 0
+  shotDelay: 0.6
+  abilityType: 2
+  animatorController: {fileID: 22100000, guid: eb987ac88fb555f4db6ed0330854b056, type: 2}
+  idleSprite: {fileID: 6509533086917369203, guid: c71501445bb81654c866550f5609463b, type: 3}
+  selectIcon: {fileID: 6509533086917369203, guid: c71501445bb81654c866550f5609463b, type: 3}
+  weaponSprite: {fileID: 21300000, guid: 5e60d4feecc923b44982945482f94fc2, type: 3}
+  weaponOffset: {x: 0, y: 0.3}
+  shootSound: {fileID: 8300000, guid: b107b42c7a2d91a42a984293a270ab09, type: 3}
+  reloadSound: {fileID: 0}
+  shootButtonIcon: {fileID: 21300000, guid: 600da5f312a3a9b4e9a6b92273c37aea, type: 3}
+  reloadButtonIcon: {fileID: 0}
+  exclusiveAugments:
+  - name: MiniRobot
+    description: Spawns 3 MiniRobot, explose when hit enemy
+    type: MiniRobot
+    requiredLevel: 10

@@ -31,10 +31,13 @@ public class PlayerCollision : MonoBehaviour
             float healAmount = (heart != null) ? heart.healValue : 10f;
             player.Heal(healAmount);
             ReturnToPoolOrDestroy(collision.gameObject);
+            if (audioManager != null) audioManager.PlayEnergySound();
         }
         else if (collision.CompareTag("USB"))
         {
-            if (GameManager.Instance != null) GameManager.Instance.AddUSB();
+            // USB giờ chỉ còn là vật phẩm hồi đầy máu. Tiến trình phá đảo được tính ngay lúc hạ Boss
+            // (GameManager.OnBossDefeated) chứ không còn phụ thuộc việc có nhặt viên này hay không.
+            player.RestoreFullHP();
             ReturnToPoolOrDestroy(collision.gameObject);
         }
         else if (collision.CompareTag("ExpSmall"))

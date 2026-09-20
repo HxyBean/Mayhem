@@ -106,7 +106,7 @@ public class CharacterUnlockPanel : MonoBehaviour
         }
 
         GameProgress.UnlockCharacter(pendingCharacter);
-        if (sourceButton != null) sourceButton.RefreshLockState();
+        if (sourceButton != null) sourceButton.Refresh();
         Hide();
     }
 }
