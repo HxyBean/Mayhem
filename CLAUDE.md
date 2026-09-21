@@ -255,8 +255,16 @@ EnergyEnemy   — override DropItems (rơi Energy thay vì EXP)
 HealEnemy     — override DropItems
 ExplosionEnemy— override OnPlayerStay() = Die() ngay (nổ+chết khi chạm, KHÔNG gây stayDmg liên tục);
                 override DropItems + Die() (spawn hiệu ứng nổ trước khi trả Pool)
+RangedEnemy   — override Update: ngoài stopRadius (8) thì MoveToPlayer(), vào trong thì đứng yên FlipEnemy()
+                + bắn EnemyBullet mỗi attackCoolDown; override DropItems (0-1 viên to + 1-2 viên nhỏ)
+USBEnemy      — rơi vật phẩm USB; KHÔNG spawn ngẫu nhiên (xem 6.3); chiêu Lướt: vào dashTriggerRadius (8) thì
+                vận sức chargeTime (0.75s) có cảnh báo hướng, rồi lướt dashDistance (8), cooldown 3s
 BossEnemy     — override OnEnable/Update/DropItems/Die, thêm skill ngẫu nhiên + Teleport có telegraph
 ```
+
+> `RangedEnemy` là ví dụ chuẩn của việc override `Update()`: nó KHÔNG gọi `base.Update()` (vì base luôn
+> `MoveToPlayer()`), mà tự quyết định lúc nào đuổi lúc nào đứng bắn. Vẫn dùng lại `MoveToPlayer()`/`FlipEnemy()`
+> của base thay vì viết lại.
 
 - `OnTriggerEnter2D`/`OnTriggerStay2D` (không override được, seal ở base) dispatch sang `OnPlayerEnter()`/
   `OnPlayerStay()` (virtual, override ở subclass nếu cần hành vi khác — đây chính là chỗ dedupe code từng lặp lại
@@ -271,7 +279,7 @@ BossEnemy     — override OnEnable/Update/DropItems/Die, thêm skill ngẫu nhi
 `ApplyStageDifficulty()` tính lại `maxHP = baseMaxHP * hpMultiplier` mỗi `OnEnable()`).
 
 **Tiến trình phá đảo tính theo SỐ PHASE BOSS ĐÃ HẠ, không phải theo vật phẩm USB nhặt được.** `BossEnemy.Die()`
-gọi `GameManager.OnBossDefeated()` → `currentUSB++` + `UpdateUsbBar()` → đủ `usbThreshold` thì `WinGame()`, chưa
+gọi `GameManager.OnBossDefeated()` → `bossPhaseCount++` + `UpdateUsbBar()` → đủ `usbThreshold` thì `WinGame()`, chưa
 đủ thì `SpawnBossWarningThenCallBoss()` (hiệu ứng cảnh báo `bossRevive`, 2s sau Boss xuất hiện lại).
 
 > Cách cũ (cộng tiến trình lúc NHẶT USB) tạo lỗ hổng: cứ bỏ viên USB nằm dưới đất là kẹt phase vĩnh viễn mà vẫn
@@ -281,8 +289,10 @@ gọi `GameManager.OnBossDefeated()` → `currentUSB++` + `UpdateUsbBar()` → �
 Vật phẩm **USB giờ chỉ còn là đồ hồi đầy máu** (`PlayerCollision` → `player.RestoreFullHP()`), không còn vai trò
 tiến trình. Không muốn Boss rơi USB nữa thì bỏ trống `usbPrefabs` trên prefab Boss, không cần sửa code.
 
-**Tên `currentUSB`/`usbThreshold`/`usbBar` giữ nguyên** dù nay mang nghĩa "phase Boss" — đổi tên field
-`[SerializeField]` sẽ làm mất giá trị/tham chiếu đã gán trong Inspector mà Unity không báo lỗi gì.
+**Tên `usbThreshold`/`usbBar` giữ nguyên** dù nay mang nghĩa "phase Boss" — đổi tên field `[SerializeField]` sẽ
+làm mất giá trị/tham chiếu đã gán trong Inspector mà Unity không báo lỗi gì. Riêng `currentUSB` đã đổi thành
+`bossPhaseCount` (được, vì nó là field `private` thuần, Inspector không đụng tới) để khỏi lẫn với vật phẩm USB
+thật ở mục 6.3.
 
 **Hệ quả — `WinGame()` gom phần thưởng trước khi đóng băng**: thắng xảy ra NGAY lúc hạ Boss phase cuối, tức
 `Time.timeScale = 0` ngay khi coin vừa rơi ra từ đám quái cuối cùng. Vì vậy `WinGame()` gọi
@@ -291,7 +301,7 @@ tiến trình. Không muốn Boss rơi USB nữa thì bỏ trống `usbPrefabs` 
 coin — và là lưới an toàn nếu ai đó set `usbThreshold = 1` (phase đầu cũng chính là phase cuối).
 
 **PHỤ THUỘC THỨ TỰ trong `BossEnemy.Die()`**: `DropItems()` (nơi gọi `ShouldDropDiamond()` → `IsFirstBossKill()`)
-phải chạy TRƯỚC `OnBossDefeated()` (nơi tăng `currentUSB`). Nhờ vậy ở phase đầu tiên `currentUSB` vẫn đang là 0.
+phải chạy TRƯỚC `OnBossDefeated()` (nơi tăng `bossPhaseCount`). Nhờ vậy ở phase đầu tiên `bossPhaseCount` vẫn đang là 0.
 Đảo thứ tự 2 dòng này là kim cương không bao giờ rơi.
 
 Boss có 5 skill random (`PickRandomSkill`): NormalAtk, CircleAtk (12 viên tỏa tròn), Heal, SpawnMini, Teleport
@@ -312,6 +322,39 @@ delay, gây damage vùng `teleportLandingRadius` nếu Player chưa kịp né).
    không ngủ là đủ để Unity vẫn bắn `OnTriggerStay2D`, nhưng set cả 2 bên cho chắc).
 
 Nếu sau này thêm loại va chạm mới (VD 1 hiệu ứng "damage theo thời gian" khác), LUÔN nhớ 2 gotcha này.
+
+### 6.3 USBEnemy & tài nguyên USB
+
+**Spawn theo mốc số mạng, không ngẫu nhiên**: [EnemySpawner.cs](Assets/Scripts/Enemies/EnemySpawner.cs) giữ
+`killCount`; `Enemy.Die()` (base) gọi `EnemySpawner.Instance.OnEnemyKilled()`, đủ `killsPerUsbEnemy` (50) thì
+spawn `usbEnemyPrefab` tại 1 spawn point ngẫu nhiên rồi reset bộ đếm. **Đừng cho prefab này vào mảng `enemies`**
+của spawner, nếu không nó sẽ vừa spawn theo mốc vừa spawn ngẫu nhiên. Boss KHÔNG tính vào bộ đếm (Boss override
+`Die()` không gọi `base.Die()`) — cố ý, vì mốc này thưởng cho việc dọn quái thường.
+
+**Chiêu Lướt** ([USBEnemy.cs](Assets/Scripts/Enemies/USBEnemy.cs)): hướng lướt được **khóa ngay từ đầu lúc vận
+sức** chứ không cập nhật liên tục — giống chiêu Teleport của Boss, để Player có trọn `chargeTime` né sang bên thay
+vì bị chiêu bám dính. `OnEnable()` reset cờ `isCharging`/`isDashing` (Pool tái sử dụng), `OnDisable()` dọn hiệu
+ứng cảnh báo — chết giữa lúc vận sức mà không dọn thì vệt cảnh báo nằm lại vĩnh viễn trên bản đồ.
+
+> Hiệu ứng cảnh báo **cố ý KHÔNG gắn làm con của quái** (khác hiệu ứng chém của Knight), mà spawn ở world space
+> rồi tự kéo theo. Lý do ở quy tắc chung tại mục 9. Gắn làm con còn kéo theo một bug thứ 2: `FlipEnemy()` lật quái
+> bằng `localScale.x = -1`, con thừa hưởng scale âm nên sprite bị **soi gương** — lướt sang trái mà mũi tên nhìn
+> vẫn như chĩa sang phải, trông y hệt "không xoay theo hướng".
+>
+> Việc đồng bộ vị trí/góc xoay đặt ở **`LateUpdate()`**, KHÔNG phải `Update()`: nếu prefab cảnh báo có Animator mà
+> clip lỡ có key Rotation (hay gặp khi record animation hiệu ứng), Animator chạy sau `Update()` và ghi đè sạch góc
+> xoay vừa set. Áp dụng cho MỌI hiệu ứng cần giữ góc xoay do code quyết định.
+
+**Tài nguyên USB** (`GameManager.collectedUsb`, đọc qua `CollectedUsb`): là tài nguyên **TIÊU HAO trong ván**,
+KHÔNG lưu qua ván như Coin/Kim cương. `PlayerCollision` nhặt USB → `GameManager.AddUsb(1)` **rồi mới** báo
+`NPC.OnUSBCollected()` (đảo thứ tự là nhiệm vụ luôn thiếu đúng 1 viên, vì NPC đọc lại chính con số đó). Giao
+nhiệm vụ cho NPC → `SpendUsb(usbRequired)` trừ đi. Hiển thị qua `usbText` trên `CurrencyUI` (không phụ thuộc
+`source` vì USB luôn là của ván hiện tại).
+
+> **ĐỪNG NHẦM `collectedUsb` với `bossPhaseCount`.** `bossPhaseCount` (trước tên là `currentUSB`, đã đổi để bớt
+> nhầm) là số phase Boss đã hạ — tiến trình thanh "USB" trên HUD. Còn `collectedUsb` mới là vật phẩm USB thật.
+> Hai thứ không liên quan gì nhau; chỉ trùng chữ "USB" vì các field `[SerializeField]` `usbThreshold`/`usbBar`
+> trót đặt tên vậy từ trước và đổi tên sẽ mất tham chiếu trong Inspector.
 
 ---
 
@@ -372,7 +415,7 @@ nhân vật ở màn Character Select. Vật phẩm rơi ra mang script [Currenc
   `DropItems()` sẽ làm mất coin). Để trống `coinObject` = loại quái đó không rơi coin.
 - **Kim cương**: chỉ Boss rơi (Boss override `Die()` không gọi `base.Die()` nên không dính coin). Điều kiện rơi
   nằm ở `GameManager.ShouldDropDiamond()`, phải thỏa **CẢ 3**:
-  1. `IsFirstBossKill()` — phase Boss ĐẦU TIÊN của ván (`currentUSB == 0`). **Cố ý rơi ở phase đầu chứ không phải
+  1. `IsFirstBossKill()` — phase Boss ĐẦU TIÊN của ván (`bossPhaseCount == 0`). **Cố ý rơi ở phase đầu chứ không phải
      phase cuối**: hạ Boss phase cuối là thắng luôn → `Time.timeScale = 0` ngay lúc kim cương vừa rơi ra, người
      chơi không kịp chạy tới nhặt mà bỏ lỡ là mất vĩnh viễn. Rơi sớm thì có cả ván để thong thả nhặt.
   2. `!GameProgress.IsStageCompleted(stageIndex)` — lần đầu chinh phục Stage này (đánh lại không rơi nữa).
@@ -485,6 +528,138 @@ màn chọn nhân vật. `shopPanel` vẫn nằm trong `HideAllPanels()` để t
 
 ---
 
+## 8.3 NPC & hệ thống nhiệm vụ trong màn chơi
+
+[NPC.cs](Assets/Scripts/NPC/NPC.cs) (singleton `NPC.Instance`) + [NPCDialogueUI.cs](Assets/Scripts/UI/NPCDialogueUI.cs)
++ [QuestNotificationUI.cs](Assets/Scripts/UI/QuestNotificationUI.cs).
+
+Máy trạng thái `NPCQuestState`: `Idle` → `QuestAccepted` → `QuestReadyToComplete` → `Companion`.
+- **Idle/QuestAccepted/QuestReadyToComplete**: mỗi frame đo khoảng cách tới Player, trong `interactionRadius` thì
+  bật `interactionButtonObj` (nút world-space gắn trên chính NPC).
+- Bấm nút → `OnInteract()` → `NPCDialogueUI.ShowDialogue(tên, các trang, nhãn nút hành động, callback, ảnh)`.
+  **Cửa sổ hội thoại DÙNG CHUNG cho mọi NPC**, nên ảnh chân dung phải do từng NPC truyền vào (`InteractableNPC.portrait`)
+  chứ KHÔNG gán cứng sprite lên ô `Image` trong Editor — gán cứng thì mọi NPC đều hiện chung một mặt. Tham số
+  `portrait` để cuối và có giá trị mặc định `null`, truyền `null` thì ô ảnh tự ẩn hẳn (để nguyên object mà chỉ xóa
+  sprite sẽ ra một ô trắng đặc, hoặc tệ hơn là còn nguyên mặt NPC vừa nói chuyện lần trước).
+  Hội thoại **dừng game bằng `Time.timeScale = 0`** rồi fade in bằng `Time.unscaledDeltaTime` — cùng cơ chế với
+  màn chọn augment. Nút `Next` hiện ở mọi trang trừ trang cuối; trang cuối thay bằng nút hành động
+  (`Accept`/`Complete`). Nút `Exit` đóng hội thoại và trả `timeScale` về 1.
+- Nhặt USB → `PlayerCollision` gọi `NPC.Instance.OnUSBCollected()`; đủ `usbRequired` thì chuyển sang
+  `QuestReadyToComplete` + `QuestNotificationUI.ShowNotification()` (banner góc màn hình, tự ẩn sau `displayDuration`).
+  Việc kiểm tra nằm ở `CheckQuestProgress()` và được gọi từ **3 chỗ**: lúc nhặt USB, lúc vừa nhận nhiệm vụ
+  (`AcceptQuest`), và mỗi lần bắt đầu nói chuyện (`OnInteract`) — lý do ở ghi chú bên dưới.
+- **Companion**: ẩn nút tương tác, tắt Collider để không cản Player, bám theo Player (giữ `followDistance`) và tự
+  bắn con Enemy gần nhất mỗi `shootCooldown` (2s) với `Player.GetCurrentDamage() * damageMultiplier` (0.8).
+  Animation chạy/đứng qua bool **`isRun`** — cùng tên tham số với Animator của Player.
+
+> **Điều kiện nhiệm vụ phải kiểm tra lại LÚC CẦN DÙNG, không chỉ lúc có sự kiện.** USB là tài nguyên dùng chung
+> của ván nên số lượng thay đổi độc lập với NPC: người chơi có thể gom đủ 3 viên TRƯỚC khi gặp NPC lần đầu (nhận
+> nhiệm vụ xong không có sự kiện nhặt nào bắn ra nữa → kẹt ở `QuestAccepted`, NPC đòi "thêm 0 viên", phải nhặt dư
+> 1 viên mới thoát), hoặc tiêu USB vào việc khác sau khi đã đủ (trạng thái `QuestReadyToComplete` thành lỗi thời).
+> Vì vậy `OnInteract()` luôn đồng bộ lại 2 chiều với số USB thực tế trước khi chọn hội thoại. Áp dụng cho mọi
+> nhiệm vụ/điều kiện dựa trên tài nguyên tiêu hao sau này.
+
+> **Hysteresis khi bám theo**: dùng 2 ngưỡng khác nhau cho lúc bắt đầu đi (`dist > followDistance`) và lúc dừng
+> (`dist <= followDistance - followStopBuffer`). Chỉ dùng 1 ngưỡng thì khi Player đi chậm hơn NPC, khoảng cách
+> liên tục nhảy qua lại quanh mốc đó → NPC đi-dừng mỗi frame và animation nháy idle/run. Mọi cơ chế "đuổi theo rồi
+> giữ khoảng cách" sau này đều cần kiểu 2 ngưỡng này.
+
+**USB giờ là vật phẩm nhiệm vụ + tiền tệ trao đổi**, không còn là mốc tiến trình phá đảo (mục 6.1) và cũng không
+nên rơi từ Boss nữa — bỏ trống `usbPrefabs` trên prefab Boss là xong, không cần sửa code. Loại Enemy rơi USB là
+`USBEnemy` (mục 6.3).
+
+---
+
+## 8.4 NPCComputer & hệ thống mã độc (Malware)
+
+Trạm dừng nghỉ trong màn chơi: nói vài câu rồi mở màn hình mua "mã độc" — vật phẩm tăng sức mạnh cho Player hoặc
+gây hại Enemy, **có hiệu lực trong một khoảng thời gian** rồi hết.
+
+**Tài nguyên thanh toán là của VÁN HIỆN TẠI, không phải tổng đã lưu**: `GameManager.CollectedUsb` (USB) và
+`GameManager.RunCoin` (coin nhặt trong ván). Tiêu coin ở đây thì cuối ván `CommitRunCurrency()` cộng vào tổng ít
+đi đúng bấy nhiêu — đó chính là đánh đổi cố ý: mạnh ngay trong ván, hay để dành mua chỉ số vĩnh viễn ở Shop (8.2).
+
+> Giao dịch dùng `TrySpendUsb()`/`TrySpendRunCoin()` — **trả về `false` và KHÔNG trừ gì khi thiếu**, khác hẳn
+> `SpendUsb()` cũ vốn kẹp về 0 (dùng cho nhiệm vụ NPC, nơi đã chắc chắn đủ). Dùng nhầm `SpendUsb()` cho mua bán
+> nghĩa là người chơi trả thiếu vẫn nhận được hàng.
+
+[MalwareData.cs](Assets/Scripts/Managers/MalwareData.cs) — ScriptableObject (`Create → Mayhem → Malware Data`),
+mỗi món 1 asset. **Giá `<= 0` = KHÔNG mua được bằng loại tài nguyên đó** và nút thanh toán tương ứng tự ẩn — đúng
+quy ước `CharacterData.coinPrice`/`diamondPrice`, nhờ vậy 3 trường hợp "chỉ USB" / "chỉ Coin" / "cả hai" diễn đạt
+được mà không cần thêm enum nào.
+
+| `MalwareEffectType` | Hiệu ứng | Tham số |
+|---|---|---|
+| `SlowAura` | Làm chậm mọi Enemy trong `radius` quanh Player | `slowPercent` (0.4 = giảm 40%) |
+| `DotAura` | Sát thương theo tick cho mọi Enemy trong `radius` quanh Player | `tickInterval`, `damagePercentPerTick` (0.2 = 20% sát thương Player) |
+
+[MalwareManager.cs](Assets/Scripts/Managers/MalwareManager.cs) (singleton, đặt 1 cái trong mỗi Scene Level) giữ
+danh sách mã độc đang chạy và đếm ngược. **Vùng hiệu lực BÁM THEO NHÂN VẬT** (khác `PotionZone` là vùng đứng yên
+tại chỗ ném), nên KHÔNG dùng Collider + `OnTriggerEnter/Exit` mà quét lại `Physics2D.OverlapCircleAll` quanh
+Player mỗi `scanInterval` (0.1s — quét mỗi frame là thừa).
+
+> **Slow phải ĐỐI CHIẾU danh sách, không được cứ thấy trong vùng là `ApplySlow()`.** `Enemy.ApplySlow()`/
+> `RemoveSlow()` đếm theo stack (mục 7), áp lại mỗi lần quét sẽ làm stack phình vô hạn và con quái không bao giờ
+> hết chậm. Mỗi lần quét: con mới vào vùng → `ApplySlow` + thêm vào list; con đã ra khỏi vùng → `RemoveSlow` +
+> bỏ khỏi list.
+>
+> Con đã chết và về Pool thì **chỉ bỏ khỏi list, KHÔNG gọi `RemoveSlow()`** — `Enemy.OnEnable()` đã tự reset
+> `slowStackCount = 0`, gọi thêm chỉ trừ nhầm stack của kiếp sau.
+
+Mua lại đúng mã độc đang chạy = **làm mới thời gian**, không chồng thêm bản thứ 2 (slow không cộng dồn, mà chồng
+2 bản còn làm thanh đếm ngược trên HUD bị nhân đôi).
+
+**UI**: [MalwareShopUI.cs](Assets/Scripts/UI/MalwareShopUI.cs) (dừng game `timeScale = 0`, các ô hàng dựng sẵn
+dùng chung — nạp data theo `stock`, y hệt pattern 2 pager ở mục 8.1) +
+[MalwareShopItemButton.cs](Assets/Scripts/UI/MalwareShopItemButton.cs) (2 nút thanh toán riêng USB/Coin) +
+[MalwareTimerUI.cs](Assets/Scripts/UI/MalwareTimerUI.cs) (thanh đếm ngược trên HUD).
+
+**Danh sách hàng bán nằm trên `NPCComputer.stock`, KHÔNG nằm trong `MalwareShopUI`** — nhờ vậy đặt được nhiều
+trạm bán các món khác nhau (hoặc mỗi Level bán một kiểu) mà vẫn dùng chung đúng 1 màn hình shop. Thêm món mới =
+thêm asset vào mảng đó, không sửa code.
+
+### Base class `InteractableNPC`
+
+[InteractableNPC.cs](Assets/Scripts/NPC/InteractableNPC.cs) giữ phần dùng chung của MỌI NPC đứng trong màn:
+`interactionRadius`, `interactionButtonObj`, đo khoảng cách tới Player để hiện/ẩn nút, và nối `onClick`. Cả
+`NPC` (nhiệm vụ) lẫn `NPCComputer` đều kế thừa nó và chỉ override `OnInteract()`. Cùng tinh thần với `Enemy.cs`.
+**Thêm NPC mới thì kế thừa class này, đừng chép lại đoạn dò khoảng cách/nối nút** — riêng việc nối nút đã chứa
+sẵn cái bẫy `GetComponentInChildren<Button>(true)` ở mục 13.
+
+---
+
+## 8.5 Minimap (la bàn chỉ hướng NPC)
+
+[MinimapUI.cs](Assets/Scripts/UI/MinimapUI.cs) + [MinimapMarker.cs](Assets/Scripts/UI/MinimapMarker.cs).
+
+Minimap tròn, Player LUÔN ở tâm, mỗi object mang `MinimapMarker` hiện thành 1 mũi tên chỉ về phía nó. Trong tầm
+`worldRange` thì mũi tên đứng đúng vị trí tương đối; ra ngoài tầm thì **kẹp lại đúng trên viền nhưng giữ nguyên
+hướng** — đó chính là thứ biến nó thành mũi tên chỉ đường thay vì cái mốc biến mất. Mũi tên xoay theo hướng NPC
+kể cả khi đang ở trong tầm.
+
+**Cố ý KHÔNG dùng camera phụ + Render Texture** để vẽ bản đồ thật: mục đích chỉ là tìm lại NPC, mà thêm 1 camera
+render mỗi frame là cái giá quá đắt trên mobile so với vài phép tính vector.
+
+**Đăng ký qua danh sách TĨNH trên `MinimapMarker`, không phải `MinimapUI.Register()`**: Unity không đảm bảo thứ
+tự `Awake`/`OnEnable` giữa các MonoBehaviour nên marker rất dễ bật TRƯỚC khi `MinimapUI` tồn tại. Danh sách tĩnh
+không phụ thuộc thứ tự, và tự đúng với object tái sử dụng qua Pool (`OnEnable`/`OnDisable` chạy mỗi lần). Muốn
+thêm loại mốc mới (Boss, rương đồ, USBEnemy…) chỉ cần gắn `MinimapMarker` + chọn màu, không sửa code.
+
+> **Biến `static` KHÔNG tự reset khi bấm Play** nếu project bật "Enter Play Mode Options" (tắt Domain Reload) —
+> lần Play thứ 2 trở đi danh sách còn sót marker của lần chạy trước và minimap hiện mốc ma. Vì vậy
+> `MinimapMarker` có `[RuntimeInitializeOnLoadMethod(SubsystemRegistration)]` để tự dọn. **Mọi collection
+> `static` thêm sau này đều cần bước này.**
+
+Hai chỗ dễ sai khi dựng trong Editor, đã chặn sẵn bằng code:
+- **Neo/pivot của mũi tên bị ép về giữa** (`anchorMin/anchorMax/pivot = 0.5`) ngay lúc Instantiate —
+  `anchoredPosition` chỉ mang nghĩa "lệch so với tâm" khi neo ở giữa, prefab neo ở góc là lệch hết sang một bên.
+- **`iconPointsUp`**: tick nếu sprite mũi tên vẽ chĩa LÊN ở góc 0°, bỏ tick nếu chĩa sang PHẢI. Sai ô này là mọi
+  mũi tên lệch đúng 90° (cùng họ với cái bẫy sprite cảnh báo của `USBEnemy` ở mục 6.3).
+
+Chấm Player ở tâm chỉ là 1 Image đặt sẵn giữa khung trong Editor, không cần code.
+
+---
+
 ## 9. Object Pooling
 
 [`ObjectPoolManager.cs`](Assets/Scripts/Managers/ObjectPoolManager.cs) — 1 `ObjectPool<GameObject>` riêng cho MỖI
@@ -497,6 +672,15 @@ tiên. Vị trí/rotation/kích hoạt phải set NGAY SAU khi `Get()` trả v�
 **Gotcha đã fix — parent dính lại khi tái sử dụng**: `ReturnObjectToPool()` LUÔN gọi `obj.transform.SetParent(null)`
 TRƯỚC khi Release — bắt buộc cho các hiệu ứng được gắn làm con Player (`attachToPlayer = true` ở KnightCombat, VD
 Khiên/Xoay Kiếm) để lần Spawn tiếp theo (dùng cho object/nhân vật khác) không bị dính nhầm parent cũ.
+
+**Gotcha đã fix — CHỈ được gắn hiệu ứng làm con của object KHÔNG BAO GIỜ VÀO POOL**: Unity CẤM đổi parent của một
+object trong lúc parent của nó đang được bật/tắt. Vì `ReturnObjectToPool()` luôn `SetParent(null)` (xem trên), nên
+chuỗi "quái chết → trả quái về Pool → `SetActive(false)` → `OnDisable()` của quái → trả hiệu ứng-con về Pool" sẽ
+ném `Cannot set the parent of the GameObject 'X' while activating or deactivating the parent GameObject 'Y'`.
+
+> **Quy tắc**: gắn hiệu ứng làm con của **Player** thì an toàn (Player không bao giờ vào Pool). Gắn làm con của
+> **Enemy/đạn/bất kỳ object pooled nào** thì KHÔNG — thay vào đó spawn ở world space rồi tự cập nhật vị trí trong
+> `Update()` (xem `USBEnemy.SpawnWarning()` ở mục 6.3). Không có parent thì lúc chết chẳng có gì phải gỡ.
 
 Mọi nơi spawn effect/bullet/enemy/pickup trong project đều theo pattern: `if (ObjectPoolManager.Instance != null)
 SpawnObject(...) else Instantiate(...)` (fallback an toàn nếu Pool Manager chưa có trong Scene).
@@ -536,6 +720,8 @@ Managers/
   CharacterData.cs        — ScriptableObject cấu hình nhân vật
   StageData.cs             — ScriptableObject cấu hình độ khó/augment riêng theo Stage
   ShopUpgrades.cs          — Bảng số liệu + logic mua của Shop Power Up (enum ShopStatType nằm cùng file)
+  MalwareData.cs            — ScriptableObject 1 món mã độc bán ở NPCComputer (mục 8.4)
+  MalwareManager.cs         — Đếm ngược + chạy hiệu ứng các mã độc đang có hiệu lực (vùng bám theo Player)
   AudioManager.cs         — Master/Default(+Boss)/Effect volume độc lập
   ObjectPoolManager.cs    — Pool dùng chung cho mọi prefab spawn động
   CursorManager.cs         — (chưa tài liệu hóa chi tiết — ít thay đổi)
@@ -557,13 +743,19 @@ Weapons/
 
 Enemies/
   Enemy.cs                  — Base abstract: HP/move/collision/stage-difficulty dùng chung
-  BasicEnemy/MiniEnemy/EnergyEnemy/HealEnemy/ExplosionEnemy.cs — Override tối thiểu theo hành vi riêng
+  BasicEnemy/MiniEnemy/EnergyEnemy/HealEnemy/ExplosionEnemy/RangedEnemy.cs — Override tối thiểu theo hành vi riêng
+  USBEnemy.cs                 — Rơi vật phẩm USB, chiêu vận sức rồi lướt; spawn theo mốc 50 mạng (mục 6.3)
   BossEnemy.cs                — Skill ngẫu nhiên, hồi sinh, Teleport có telegraph
-  EnemySpawner.cs              — Spawn định kỳ, tăng tốc độ spawn theo currentLevel (5, 10)
+  EnemySpawner.cs              — Spawn định kỳ + đếm mạng để spawn USBEnemy; tăng tốc spawn theo currentLevel (5, 10)
   HeartPickup.cs                — healValue cho vật phẩm Heart
 
 Effects/
   Explosion.cs                 — Hiệu ứng nổ (dùng bởi Bomb, tự dọn)
+
+NPC/
+  InteractableNPC.cs           — Base abstract: dò khoảng cách Player + hiện/nối nút tương tác (dùng chung mọi NPC)
+  NPC.cs                       — Máy trạng thái nhiệm vụ + chế độ đồng hành (bám theo, tự bắn) — xem mục 8.3
+  NPCComputer.cs               — Trạm dừng nghỉ: chào hỏi rồi mở shop mã độc — xem mục 8.4
 
 UI/
   GameUI.cs                    — Cập nhật text/HUD trong ván chơi (Update...Text gọi từ AugmentManager)
@@ -577,6 +769,14 @@ UI/
   CoinExchangeButton.cs         — Ô đổi Coin sang Kim cương
   DragAimButton.cs (abstract) → BombButton.cs / PotionButton.cs / BlinkButton.cs (chọn ĐIỂM)
                               → LaserButton.cs (chọn HƯỚNG, mũi tên xoay tại chỗ)
+  NPCDialogueUI.cs              — Cửa sổ hội thoại NPC (dừng game, lật trang, nút hành động ở trang cuối)
+  MalwareShopUI.cs              — Màn hình giao dịch mã độc (dừng game, ô hàng dựng sẵn nạp theo stock)
+  MalwareShopItemButton.cs      — 1 ô hàng: icon/mô tả + 2 nút thanh toán USB/Coin, ẩn nút nếu giá <= 0
+  MalwareTimerUI.cs             — Thanh đếm ngược thời gian còn lại của mã độc đang chạy (HUD)
+  MinimapUI.cs                  — Minimap tròn kiểu la bàn: mũi tên chỉ hướng NPC, dính viền khi ngoài tầm (mục 8.5)
+  MinimapMarker.cs              — Gắn vào object muốn hiện trên minimap (màu + icon riêng), tự ghi danh
+  UIFollowWorldTarget.cs        — Kéo 1 phần tử UI bám theo vị trí world của 1 object (nút tương tác trên đầu NPC)
+  QuestNotificationUI.cs        — Banner thông báo nhiệm vụ ở góc màn hình, tự ẩn
   ShieldButton.cs               — Giữ/thả (không phải drag-aim)
   ScrollingBackground.cs        — Nền cuộn vô hạn 2 ảnh (Main Menu)
 ```
@@ -594,6 +794,7 @@ UI/
 | Reload/Regen theo augment tự "biến mất" hoặc không nhất quán | Field lưu trên OBJECT ĐƯỢC POOL (VD `PlayerBullet`) thay vì trên SINGLETON PERSISTENT (`Player`/`Gun`/`KnightCombat`) | Luôn lưu stat cộng dồn từ augment trên `Player`/`Gun`/`KnightCombat` — KHÔNG BAO GIỜ trên `PlayerBullet`/`Pickup`/Enemy pooled instance |
 | Hiệu ứng chém/Khiên/Xoay Kiếm đứng yên không bám theo Player khi di chuyển | Spawn effect không gắn parent | `SpawnEffect(prefab, pos, attachToPlayer: true)` — set `transform.SetParent(this.transform)` |
 | Hiệu ứng gắn-theo-Player bị dính lại object khác lần sau khi tái sử dụng Pool | `ReturnObjectToPool()` không gỡ parent trước khi Release | Luôn `obj.transform.SetParent(null)` trước `pool.Release(obj)` |
+| `Cannot set the parent of the GameObject 'X' while activating or deactivating the parent GameObject 'Y'` khi Enemy chết giữa lúc đang có hiệu ứng gắn kèm | Unity CẤM đổi parent trong lúc parent đang bật/tắt. Enemy chết → về Pool → `SetActive(false)` → `OnDisable()` → trả hiệu ứng-con về Pool → `SetParent(null)` ngay giữa lúc parent đang tắt | ĐỪNG gắn hiệu ứng làm con của object pooled (Enemy/đạn). Spawn ở world space rồi tự đồng bộ vị trí trong `Update()`. Chỉ Player mới được làm parent vì không bao giờ vào Pool — xem mục 9 |
 | Chọn Knight vẫn thấy súng/nút Bắn/Nạp đạn/Bomb/Potion hiện ra | `Gun.Start()` (nơi ẩn `bombButtonObj`/`potionButtonObj` mặc định) KHÔNG BAO GIỜ chạy nếu `Gun.enabled = false` được set TRƯỚC khi Unity gọi `Start()` | Chuyển toàn bộ logic ẩn/hiện vào `Gun.SetActive(bool)` (gọi trực tiếp từ `GameManager`), không phụ thuộc `Start()` |
 | Augment ép buộc (Bomb cấp 8 / Burst-Split cấp 10) ra màn hình TRỐNG khi chơi Mage | Không kiểm tra augment đó có tồn tại trong pool của nhân vật hiện tại trước khi ép buộc | Luôn `augmentPool.Find(a => a.type == "...")` trước, `!= null` mới ép buộc, ngược lại rơi về random bình thường |
 | Mana Regen tỉ lệ lẻ (VD 0.25/s) không cộng được gì | Cộng thẳng số thập phân vào `currentAmmo` (int) → làm tròn về 0 | Dùng `manaRegenAccumulator` (float) gom dần qua nhiều giây, chỉ cộng phần nguyên khi đủ ≥1 |
@@ -601,6 +802,12 @@ UI/
 | Aim Bomb/Potion/Blink xuất hiện dính tại nút bấm, khó kéo | Aim reticle bám theo vị trí tuyệt đối ngón tay / vị trí nút | `DragAimButton` tính `worldDelta` (độ lệch so lúc mới nhấn), cộng vào vị trí NHÂN VẬT, không phải vị trí nút |
 | CS0163 "not all code paths return a value" khi tự thêm `case` mới vào switch trong `AugmentManager.ApplyEffect()` | Thiếu `break;` cuối case, rơi (fall-through) sang case kế tiếp | MỌI case (trừ case cuối switch) bắt buộc có `break;`/`return;` — kiểm tra kỹ khi tự sửa tay |
 | Mua chỉ số Shop: UI lệch đúng 1 nhịp (bấm lần đầu không lên cấp), và khi full 5/5 phải thoát ra vào lại mới thấy "Full" | `OnCurrencyChanged` bắn ra NGAY LÚC trừ Coin, tức TRƯỚC khi `TryBuyUpgrade` ghi cấp mới → dòng đó vẽ lại bằng cấp cũ. Còn khi đã full thì hàm thoát sớm, không trừ Coin nên event KHÔNG bắn phát nào | Dòng vừa bấm phải tự gọi `Refresh()` sau `TryBuyUpgrade()`. **Quy tắc chung: đừng dùng event "tiền thay đổi" để vẽ lại thứ phụ thuộc trạng thái KHÁC ngoài tiền** — event có thể bắn giữa chừng giao dịch, hoặc không bắn khi giao dịch bị từ chối |
+| Nút tương tác NPC hiện ra bình thường khi lại gần nhưng bấm KHÔNG có phản ứng gì | `GetComponentInChildren<T>()` mặc định **bỏ qua object đang tắt, kể cả chính object gốc**. `NPC.Awake()` gọi `SetActive(false)` TRƯỚC rồi mới tìm `Button` → luôn ra null → `onClick.AddListener` không bao giờ chạy | Truyền `GetComponentInChildren<Button>(true)` (và nên lấy component TRƯỚC khi tắt object). Áp dụng cho MỌI chỗ tìm component trên UI ẩn sẵn |
+| Đạn do NPC/script khác bắn tự biến mất giữa đường | Đạn lấy từ Pool còn giữ `maxRange` của lần bắn Burst Shot trước | Nơi nào spawn `PlayerBullet` cũng phải tự set lại `maxRange` (0 = không giới hạn), y như `Gun.SpawnBullet()` |
+| `Coroutine couldn't be started because the game object 'X' is inactive!` khi mở panel | Coroutine chỉ chạy được khi **object gắn script** đang bật. Hai biến thể: (a) script nằm trên chính object nó tự `SetActive(false)` trong `Awake()`, mà lệnh bật lại nằm BÊN TRONG coroutine; (b) `panelRoot` trỏ tới object CON còn object cha gắn script mới là cái đang tắt — **bật con KHÔNG làm cha sống lại** | Trong hàm public, TRƯỚC `StartCoroutine`: bật **cả `gameObject` của script lẫn panel** (2 cái có thể khác nhau), set `Time.timeScale`, rồi mới `StartCoroutine` và chỉ để coroutine lo phần fade/đếm giờ. Thêm guard `if (!gameObject.activeInHierarchy)` để lỡ có object cha đang tắt thì bỏ hiệu ứng chứ không ném lỗi |
+| Màn hình mở ra từ nút hành động của hội thoại NPC không dừng được game (`timeScale` tự về 1) | `NPCDialogueUI.OnAction()` gọi callback TRƯỚC rồi mới `CloseDialogue()` — mà hàm đó set `Time.timeScale = 1f`, ghi đè luôn giá trị 0 mà callback vừa set | Đóng hội thoại TRƯỚC, gọi callback SAU (giữ lại tham chiếu callback trước khi đóng). Quy tắc: hàm dọn dẹp khôi phục trạng thái toàn cục phải chạy TRƯỚC callback của người dùng, không phải sau |
+| Gom đủ USB TRƯỚC khi nhận nhiệm vụ NPC → nhận xong quay lại NPC vẫn đòi "thêm 0 viên", phải nhặt dư 1 viên mới hoàn thành được | Điều kiện hoàn thành CHỈ được kiểm tra trong sự kiện nhặt USB. Đã đủ từ trước thì lúc nhận nhiệm vụ không có sự kiện nào bắn ra để kích hoạt kiểm tra | Tách ra `CheckQuestProgress()` và gọi thêm ở `AcceptQuest()` + `OnInteract()`. **Quy tắc: điều kiện dựa trên tài nguyên dùng chung phải kiểm tra lại LÚC CẦN DÙNG, đừng chỉ dựa vào sự kiện thay đổi tài nguyên** |
+| Nút trong Canvas **World Space** hiện ra nhưng bấm không ăn, dù đã đủ Graphic Raycaster + Event Camera | Canvas **Screen Space - Overlay** (GameUI) LUÔN ăn raycast trước World Space. Chỉ cần 1 Image của GameUI phủ lên vùng đó với `Raycast Target` bật (kể cả trong suốt) là click không xuống tới nơi | Kiểm chứng: Play mode → tắt GameObject `GameUI` → bấm lại. Cách tránh hẳn: để nút TRONG GameUI rồi gắn [UIFollowWorldTarget.cs](Assets/Scripts/UI/UIFollowWorldTarget.cs) cho nó bám theo vị trí world của object |
 
 ---
 

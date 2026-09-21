@@ -213,11 +213,10 @@ public class BossEnemy : Enemy
 
     protected override void DropItems()
     {
-        if (usbPrefabs != null) SpawnItem(usbPrefabs);
-        if (xpObject != null) SpawnItem(xpObject); // 1 Boss Exp
+        if (xpObject != null) SpawnItem(xpObject);
+        if (usbPrefabs != null) SpawnItem(usbPrefabs); // 1 Boss Exp
 
-        // Boss KHÔNG rơi coin như quái thường (Die() của Boss không gọi base.Die() nên không dính DropCoin),
-        // thay vào đó rơi kim cương - đúng 1 lần duy nhất, ở phase đầu tiên của lần đầu chinh phục Stage này.
+        // Diamond only drops on first boss phase of first stage clear
         if (diamondPrefabs != null && GameManager.Instance != null && GameManager.Instance.ShouldDropDiamond())
         {
             SpawnItem(diamondPrefabs);
@@ -236,7 +235,7 @@ public class BossEnemy : Enemy
         baseMaxHP *= 1.2f;
 
         // Báo GameManager cộng tiến trình phase Boss + gọi phase kế tiếp (hoặc kết thúc ván nếu đây là phase cuối).
-        // PHẢI gọi SAU DropItems() vì ShouldDropDiamond() ở trên cần currentUSB của GameManager chưa bị tăng.
+        // PHẢI gọi SAU DropItems() vì ShouldDropDiamond() ở trên cần bossPhaseCount của GameManager chưa bị tăng.
         if (GameManager.Instance != null) GameManager.Instance.OnBossDefeated();
 
         // Tắt boss - GameManager sẽ bật lại ở phase kế tiếp
