@@ -50,9 +50,10 @@ public class GameManager : MonoBehaviour
 
     // Private Fields
     private int currentEnergy = 0;
-    // Số phase Boss ĐÃ HẠ (tiến trình của thanh "USB"). Tăng ngay lúc Boss chết chứ không phải lúc nhặt vật
-    // phẩm USB - tên field/thanh UI giữ nguyên chữ "USB" để không phải nối lại tham chiếu trong Inspector.
-    private int currentUSB = 0;
+    // Số phase Boss ĐÃ HẠ - đây chính là tiến trình của thanh "USB" trên HUD. ĐỪNG nhầm với collectedUsb bên
+    // dưới (vật phẩm USB thật sự nhặt được): 2 thứ hoàn toàn khác nhau, chỉ trùng chữ "USB" vì các field
+    // [SerializeField] usbThreshold/usbBar đã trót đặt tên vậy và đổi tên sẽ mất tham chiếu trong Inspector.
+    private int bossPhaseCount = 0;
     private float currentXP = 0f;
     private float expMultiplier = 1f; // 100% kinh nghiệm
     private StageData currentStage;
@@ -66,6 +67,12 @@ public class GameManager : MonoBehaviour
     private bool runCurrencyCommitted = false;
     public int RunCoin => runCoin;
     public int RunDiamond => runDiamond;
+
+    // Vật phẩm USB nhặt được trong ván (do USBEnemy rơi ra). Là tài nguyên TIÊU HAO dùng ngay trong màn: giao
+    // nhiệm vụ cho NPC, sau này còn để trao đổi. KHÔNG lưu qua ván như Coin/Kim cương, cũng KHÔNG liên quan gì
+    // tới bossPhaseCount ở trên.
+    private int collectedUsb = 0;
+    public int CollectedUsb => collectedUsb;
 
     // Bắn ra mỗi khi nhặt được coin/kim cương trong ván, để CurrencyUI (chế độ This Run) tự cập nhật
     public static event System.Action OnRunCurrencyChanged;
@@ -88,7 +95,8 @@ public class GameManager : MonoBehaviour
         Application.targetFrameRate = 60;
         Time.timeScale = 1f; // Phòng trường hợp Scene trước đó (Pause/GameOver) rời đi khi timeScale đang = 0
         currentEnergy = 0;
-        currentUSB = 0;
+        bossPhaseCount = 0;
+        collectedUsb = 0;
         currentXP = 0f;
         IsBossCalled = false;
         runCoin = 0;
@@ -298,10 +306,10 @@ public class GameManager : MonoBehaviour
     // ==============================================
     // Boss vừa bị hạ có phải phase ĐẦU TIÊN của ván không.
     // PHỤ THUỘC THỨ TỰ: BossEnemy.Die() gọi DropItems() (nơi dùng hàm này) TRƯỚC OnBossDefeated() (nơi tăng
-    // currentUSB), nên ngay tại phase đầu tiên currentUSB vẫn đang là 0.
+    // bossPhaseCount), nên ngay tại phase đầu tiên bossPhaseCount vẫn đang là 0.
     private bool IsFirstBossKill()
     {
-        return currentUSB == 0;
+        return bossPhaseCount == 0;
     }
 
     // Kim cương CHỈ rơi ở phase Boss ĐẦU TIÊN, và chỉ trong lần đầu chinh phục Stage này.
@@ -334,6 +342,52 @@ public class GameManager : MonoBehaviour
 
         runDiamond += amount;
         OnRunCurrencyChanged?.Invoke();
+    }
+
+    // Gọi từ PlayerCollision khi nhặt vật phẩm USB (do USBEnemy rơi ra)
+    public void AddUsb(int amount)
+    {
+        if (amount <= 0) return;
+
+        collectedUsb += amount;
+        OnRunCurrencyChanged?.Invoke();
+    }
+
+    // Tiêu USB (giao nhiệm vụ cho NPC). Kẹp ở 0 để không bao giờ âm.
+    public void SpendUsb(int amount)
+    {
+        if (amount <= 0) return;
+
+        collectedUsb = Mathf.Max(0, collectedUsb - amount);
+        OnRunCurrencyChanged?.Invoke();
+    }
+
+    // ==============================================
+    // TIÊU TÀI NGUYÊN TRONG VÁN (mua mã độc ở NPCComputer)
+    // ==============================================
+    // Khác SpendUsb ở trên: trả về false và KHÔNG trừ gì cả khi không đủ, thay vì kẹp về 0. Giao dịch mua bán
+    // bắt buộc phải dùng kiểu này - kẹp về 0 nghĩa là người chơi vẫn nhận được hàng dù trả thiếu.
+    public bool TrySpendUsb(int amount)
+    {
+        if (amount <= 0) return false;
+        if (collectedUsb < amount) return false;
+
+        collectedUsb -= amount;
+        OnRunCurrencyChanged?.Invoke();
+        return true;
+    }
+
+    // Tiêu Coin của VÁN NÀY (runCoin), không phải tổng Coin đã lưu. Tiêu ở đây thì cuối ván CommitRunCurrency()
+    // cộng vào tổng ít đi bấy nhiêu - đó chính là cái giá phải cân nhắc: mạnh ngay trong ván, hay để dành mua
+    // chỉ số vĩnh viễn ở Shop.
+    public bool TrySpendRunCoin(int amount)
+    {
+        if (amount <= 0) return false;
+        if (runCoin < amount) return false;
+
+        runCoin -= amount;
+        OnRunCurrencyChanged?.Invoke();
+        return true;
     }
 
     // Gom mọi Coin/Kim cương còn nằm trên bản đồ vào ví của ván, coi như người chơi đã nhặt hết.
@@ -383,10 +437,10 @@ public class GameManager : MonoBehaviour
     // phase vĩnh viễn mà vẫn farm coin/kinh nghiệm từ quái thường vô hạn).
     public void OnBossDefeated()
     {
-        currentUSB += 1;
+        bossPhaseCount += 1;
         UpdateUsbBar();
 
-        if (currentUSB >= usbThreshold)
+        if (bossPhaseCount >= usbThreshold)
         {
             WinGame();
             return;
@@ -447,7 +501,7 @@ public class GameManager : MonoBehaviour
     {
         if (usbBar != null)
         {
-            usbBar.fillAmount = Mathf.Clamp01((float)currentUSB / usbThreshold);
+            usbBar.fillAmount = Mathf.Clamp01((float)bossPhaseCount / usbThreshold);
         }
     }
 

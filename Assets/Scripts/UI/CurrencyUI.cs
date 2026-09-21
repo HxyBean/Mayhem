@@ -16,6 +16,9 @@ public class CurrencyUI : MonoBehaviour
     [SerializeField] private CurrencyDisplaySource source = CurrencyDisplaySource.Total;
     [SerializeField] private TMP_Text coinText;
     [SerializeField] private TMP_Text diamondText;
+    [Tooltip("Số vật phẩm USB đang giữ trong ván (dùng giao nhiệm vụ NPC / trao đổi). Chỉ có nghĩa trong màn chơi " +
+             "nên để trống ở các panel Menu - USB không lưu qua ván như Coin/Kim cương")]
+    [SerializeField] private TMP_Text usbText;
 
     private void OnEnable()
     {
@@ -50,5 +53,12 @@ public class CurrencyUI : MonoBehaviour
 
         if (coinText != null) coinText.text = ":" + coin.ToString();
         if (diamondText != null) diamondText.text = ":" + diamond.ToString();
+
+        // USB luôn là tài nguyên của ván hiện tại, không có khái niệm "tổng đã lưu" nên không phụ thuộc source
+        if (usbText != null)
+        {
+            int usb = (GameManager.Instance != null) ? GameManager.Instance.CollectedUsb : 0;
+            usbText.text = ":" + usb.ToString();
+        }
     }
 }

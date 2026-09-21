@@ -35,9 +35,16 @@ public class PlayerCollision : MonoBehaviour
         }
         else if (collision.CompareTag("USB"))
         {
-            // USB giờ chỉ còn là vật phẩm hồi đầy máu. Tiến trình phá đảo được tính ngay lúc hạ Boss
             // (GameManager.OnBossDefeated) chứ không còn phụ thuộc việc có nhặt viên này hay không.
-            player.RestoreFullHP();
+            // Cộng vào tài nguyên USB của ván TRƯỚC, rồi mới báo NPC - NPC đọc lại chính con số đó để biết đã
+            // đủ chưa, nên đảo thứ tự là nhiệm vụ luôn thiếu đúng 1 viên.
+            if (GameManager.Instance != null) GameManager.Instance.AddUsb(1);
+
+            if (NPC.Instance != null)
+            {
+                NPC.Instance.OnUSBCollected();
+            }
+
             ReturnToPoolOrDestroy(collision.gameObject);
         }
         else if (collision.CompareTag("ExpSmall"))

@@ -25,7 +25,7 @@ public static class ShopUpgrades
 
     // Giá trị CỘNG THÊM tại từng mức (KHÔNG phải tổng tích lũy). VD Máu: mua mức 1 được +20, mua tiếp mức 2
     // được +40 nữa (tổng +60)... mua hết 5 mức là tổng +300.
-    private static readonly float[] maxHpBonus = { 20f, 40f, 60f, 80f, 100f };
+    private static readonly float[] maxHpBonus = { 20f, 60f, 60f, 100f, 100f };
     private static readonly float[] damageBonus = { 5f, 10f, 10f, 15f, 20f };
     private static readonly float[] moveSpeedBonus = { 0.2f, 0.2f, 0.2f, 0.4f, 1f };
     private static readonly float[] lifeStealBonus = { 0.01f, 0.01f, 0.02f, 0.02f, 0.03f }; // 1%/1%/2%/2%/3%

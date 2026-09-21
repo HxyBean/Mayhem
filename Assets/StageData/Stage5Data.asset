@@ -17,7 +17,7 @@ MonoBehaviour:
   previewImage: {fileID: 0}
   sceneName: Level5
   enemyHpMultiplier: 3
-  enemyDamageMultiplier: 3
+  enemyDamageMultiplier: 2.5
   enemySpeedMultiplier: 1.5
   extraAugments:
   - name: PercentDamage

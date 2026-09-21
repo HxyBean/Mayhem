@@ -209,6 +209,10 @@ public abstract class Enemy : MonoBehaviour
 
         DropItems();
         DropCoin();
+
+        // Đếm mạng để tới mốc thì spawn USBEnemy. Đặt ở Die() của base nên Boss (override Die() không gọi base)
+        // không tính vào - đúng ý đồ: mốc này thưởng cho việc dọn quái thường.
+        if (EnemySpawner.Instance != null) EnemySpawner.Instance.OnEnemyKilled();
         if (ObjectPoolManager.Instance != null)
         {
             ObjectPoolManager.Instance.ReturnObjectToPool(gameObject);
