@@ -26,7 +26,11 @@ public class CharacterButton : MonoBehaviour
     [SerializeField] private TMP_Text coinPriceText;
     [Tooltip("Text hiển thị giá Kim cương ngay trên nút, tự ẩn khi đã mở khóa. Có thể để trống")]
     [SerializeField] private TMP_Text diamondPriceText;
-    [Tooltip("Modal xác nhận mở khóa - kéo GameObject có script CharacterUnlockPanel (chính Character Select Panel) vào đây")]
+    [Tooltip("Panel giới thiệu nhân vật - mở ra cho MỌI nhân vật, khóa hay chưa. Panel này kiêm luôn 2 nút mua " +
+             "bằng Coin/Kim cương khi nhân vật chưa mở khóa")]
+    [SerializeField] private CharacterInfoPanel infoPanel;
+    [Tooltip("CŨ - modal mua nhân vật riêng. CharacterInfoPanel đã gộp luôn phần mua nên ô này không cần nữa, " +
+             "chỉ còn dùng làm dự phòng khi chưa gán Info Panel")]
     [SerializeField] private CharacterUnlockPanel unlockPanel;
 
     private Button button;
@@ -81,7 +85,16 @@ public class CharacterButton : MonoBehaviour
     {
         if (characterData == null) return;
 
-        // Chưa mở khóa -> mở modal xác nhận mua, KHÔNG cho vào game
+        // Mở panel giới thiệu cho MỌI nhân vật, kể cả chưa mở khóa - phải xem được chỉ số/chiêu/lõi thì mới
+        // quyết định có mua hay không. Panel tự hiện nút Vào chơi hay 2 nút thanh toán tùy trạng thái khóa,
+        // và nó cũng là nơi DUY NHẤT còn gọi LoadScene.
+        if (infoPanel != null)
+        {
+            infoPanel.Show(characterData, this);
+            return;
+        }
+
+        // ===== Dự phòng khi chưa gán Info Panel trong Editor: giữ nguyên hành vi cũ =====
         if (!GameProgress.IsCharacterUnlocked(characterData))
         {
             if (unlockPanel != null) unlockPanel.Show(characterData, this);

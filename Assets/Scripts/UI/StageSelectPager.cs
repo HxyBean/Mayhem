@@ -41,6 +41,22 @@ public class StageSelectPager : MonoBehaviour
         if (nextButton != null) nextButton.onClick.AddListener(ShowNextPage);
     }
 
+    // Đây là nơi DUY NHẤT trong game biết toàn bộ danh sách Level, nên nút "Màn tiếp theo" ở màn hình Thắng
+    // phải tra qua đây. Trả về null nếu không có Level nào mang stageIndex đó (VD vừa phá đảo Level cuối).
+    //
+    // Tra theo stageIndex chứ KHÔNG theo vị trí trong mảng: mảng có thể bị xếp lộn thứ tự hoặc thiếu một Level
+    // nào đó, lúc đó dùng vị trí sẽ nhảy sang nhầm màn mà không báo lỗi gì.
+    public StageData GetStageByIndex(int stageIndex)
+    {
+        if (allStages == null) return null;
+
+        foreach (StageData stage in allStages)
+        {
+            if (stage != null && stage.stageIndex == stageIndex) return stage;
+        }
+        return null;
+    }
+
     // Giữ nguyên trang đang xem giữa các lần mở màn chọn Level, nhưng vẫn vẽ lại để cập nhật trạng thái khóa
     // (người chơi có thể vừa phá đảo Level trước đó xong)
     private void OnEnable()

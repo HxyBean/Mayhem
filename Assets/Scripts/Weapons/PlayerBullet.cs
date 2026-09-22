@@ -78,7 +78,7 @@ public class PlayerBullet : MonoBehaviour
             Enemy enemy = collision.GetComponent<Enemy>();
             if (enemy != null)
             {
-                enemy.TakeDmg(dmg);
+                enemy.TakeDmg(dmg, transform.position); // Đẩy lùi khỏi điểm viên đạn chạm vào
 
                 // Gọi hàm hút máu từ Player
                 if (Player.Instance != null)
@@ -123,7 +123,7 @@ public class PlayerBullet : MonoBehaviour
             Enemy enemy = hit.GetComponent<Enemy>();
             if (enemy == null || enemy == directHitEnemy) continue; // Mục tiêu trúng trực tiếp đã nhận đủ sát thương gốc rồi
 
-            enemy.TakeDmg(splashDmg);
+            enemy.TakeDmg(splashDmg, transform.position); // Tỏa ra từ tâm vụ nổ lan
         }
 
         SpawnSplashEffect();

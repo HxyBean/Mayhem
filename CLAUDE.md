@@ -257,9 +257,10 @@ ExplosionEnemy— override OnPlayerStay() = Die() ngay (nổ+chết khi chạm, 
                 override DropItems + Die() (spawn hiệu ứng nổ trước khi trả Pool)
 RangedEnemy   — override Update: ngoài stopRadius (8) thì MoveToPlayer(), vào trong thì đứng yên FlipEnemy()
                 + bắn EnemyBullet mỗi attackCoolDown; override DropItems (0-1 viên to + 1-2 viên nhỏ)
-USBEnemy      — rơi vật phẩm USB; KHÔNG spawn ngẫu nhiên (xem 6.3); chiêu Lướt: vào dashTriggerRadius (8) thì
-                vận sức chargeTime (0.75s) có cảnh báo hướng, rồi lướt dashDistance (8), cooldown 3s
-BossEnemy     — override OnEnable/Update/DropItems/Die, thêm skill ngẫu nhiên + Teleport có telegraph
+USBEnemy      — CHỈ override DropItems (rơi vật phẩm USB); KHÔNG spawn ngẫu nhiên (xem 6.3). Chiêu Lướt nằm ở
+                component EnemyDashSkill gắn kèm, không phải trong file này
+BossEnemy     — override OnEnable/Update/DropItems/Die, skill ngẫu nhiên + Teleport có telegraph + Lướt
+                (dùng chung EnemyDashSkill với USBEnemy, kiểu kích hoạt thủ công)
 ```
 
 > `RangedEnemy` là ví dụ chuẩn của việc override `Update()`: nó KHÔNG gọi `base.Update()` (vì base luôn
@@ -331,10 +332,29 @@ spawn `usbEnemyPrefab` tại 1 spawn point ngẫu nhiên rồi reset bộ đếm
 của spawner, nếu không nó sẽ vừa spawn theo mốc vừa spawn ngẫu nhiên. Boss KHÔNG tính vào bộ đếm (Boss override
 `Die()` không gọi `base.Die()`) — cố ý, vì mốc này thưởng cho việc dọn quái thường.
 
-**Chiêu Lướt** ([USBEnemy.cs](Assets/Scripts/Enemies/USBEnemy.cs)): hướng lướt được **khóa ngay từ đầu lúc vận
-sức** chứ không cập nhật liên tục — giống chiêu Teleport của Boss, để Player có trọn `chargeTime` né sang bên thay
-vì bị chiêu bám dính. `OnEnable()` reset cờ `isCharging`/`isDashing` (Pool tái sử dụng), `OnDisable()` dọn hiệu
-ứng cảnh báo — chết giữa lúc vận sức mà không dọn thì vệt cảnh báo nằm lại vĩnh viễn trên bản đồ.
+**Chiêu Lướt** — nằm ở component RỜI [EnemyDashSkill.cs](Assets/Scripts/Enemies/EnemyDashSkill.cs), KHÔNG viết
+trong `USBEnemy.cs`. Gắn component vào prefab nào thì con đó có chiêu; hiện USBEnemy và **Boss** đều dùng chung.
+Thêm chiêu cho loại quái mới = Add Component, không sửa dòng code nào (cùng kiểu opt-in với `DamageFlash`/
+`MinimapMarker`).
+
+2 kiểu kích hoạt qua `autoTriggerByProximity`:
+- **Bật** (USBEnemy): tự lướt khi Player vào trong `triggerRadius` (8).
+- **Tắt** (Boss): chờ `TryDash()` được gọi — Boss gọi từ bộ chọn chiêu ngẫu nhiên (`PickRandomSkill` case 5),
+  vì lượt dùng chiêu do bộ chọn quyết định chứ không phải cứ tới gần là lướt. Còn trong thời gian hồi chiêu thì
+  `TryDash()` trả `false` và lượt đó coi như bỏ lỡ, đúng kiểu `Teleport()` đã làm sẵn.
+
+Hướng lướt được **khóa ngay từ đầu lúc vận sức** chứ không cập nhật liên tục — giống chiêu Teleport của Boss, để
+Player có trọn `chargeTime` né sang bên thay vì bị chiêu bám dính. `OnEnable()` reset cờ `isCharging`/`isDashing`
+(Pool tái sử dụng), `OnDisable()` dọn hiệu ứng cảnh báo — chết giữa lúc vận sức mà không dọn thì vệt cảnh báo
+nằm lại vĩnh viễn trên bản đồ.
+
+> **Chốt chặn di chuyển đặt trong `Enemy.MoveToPlayer()`** (`if (IsDashing) return;`), KHÔNG phải trong `Update()`
+> của base: mọi subclass đều đi qua `MoveToPlayer()` dù có override `Update()` hay không, nên đúng 1 dòng đó là
+> cả 8 loại quái xử lý đúng mà không phải sửa gì. Boss cần thêm `IsDashing` vào điều kiện thoát sớm của
+> `Update()` — không phải để chặn di chuyển (đã có rồi) mà để không tung chiêu khác đè lên lúc đang lướt.
+
+> **`Random.Range(0, n)` của Boss KHÔNG bao gồm cận trên.** Thêm `case` mới vào `PickRandomSkill()` mà quên tăng
+> `n` thì chiêu mới không bao giờ được chọn — và không có lỗi nào báo ra.
 
 > Hiệu ứng cảnh báo **cố ý KHÔNG gắn làm con của quái** (khác hiệu ứng chém của Knight), mà spawn ở world space
 > rồi tự kéo theo. Lý do ở quy tắc chung tại mục 9. Gắn làm con còn kéo theo một bug thứ 2: `FlipEnemy()` lật quái
@@ -660,6 +680,212 @@ Chấm Player ở tâm chỉ là 1 Image đặt sẵn giữa khung trong Editor,
 
 ---
 
+## 8.6 Game juice — phản hồi khi ăn sát thương
+
+Hai component rời, gắn vào là chạy, **KHÔNG viết riêng cho Player và Enemy**:
+
+[DamageFlash.cs](Assets/Scripts/Effects/DamageFlash.cs) — nháy màu sprite. `Player.TakeDmg()` và
+`Enemy.TakeDmg()` đều `GetComponent<DamageFlash>()` trong `Awake()` rồi gọi `Flash()`; không gắn component thì
+không có gì xảy ra (`null` check), nên bật/tắt hiệu ứng cho từng loại quái chỉ bằng việc gắn hay không gắn.
+
+Có 2 chế độ (`DamageFlashMode`):
+
+| Mode | Cách hoạt động | Setup cần |
+|---|---|---|
+| `Tint` | Đổi `SpriteRenderer.color` | Không cần gì |
+| `Brighten` | Đổi `_FlashAmount` của shader | SpriteRenderer phải dùng material shader `Mayhem/SpriteFlash` |
+
+> **`SpriteRenderer.color` là màu NHÂN** nên chế độ `Tint` chỉ làm TỐI đi hoặc ngả màu được (đỏ/cam), **không
+> bao giờ làm SÁNG lên** — để trắng (1,1,1) là không thấy gì. Muốn nháy trắng xóa thì bắt buộc dùng `Brighten`.
+
+**Shader [SpriteFlash.shader](Assets/Shaders/SpriteFlash.shader)** là bản sao của URP
+`Sprite-Lit-Default`, chỉ thêm `_FlashColor`/`_FlashAmount` và 1 dòng `lerp` ở fragment. Chép từ bản **Lit** chứ
+không phải Unlit vì enemy trong project đang dùng `Sprite-Lit-Default` + Scene có Global Light 2D — dùng unlit
+sẽ làm quái mất sáng tối VĨNH VIỄN chứ không chỉ lúc nháy.
+
+> Khi sửa shader này: (a) giữ nguyên `UnityFlipSprite(...)` ở cả 3 pass — đó là chỗ xử lý `flipX` của
+> SpriteRenderer, bỏ đi là sprite lật ngược; (b) `CBUFFER UnityPerMaterial` phải **giống hệt nhau ở cả 3 pass**,
+> lệch là SRP Batcher bỏ qua shader; (c) chỉ đổi `rgb`, giữ nguyên `alpha` — đổi alpha là lúc nháy sẽ thấy cả
+> khối chữ nhật của texture thay vì hình con quái.
+
+> **Chế độ `Brighten` dùng `MaterialPropertyBlock`, TUYỆT ĐỐI không đụng vào `renderer.material`.** Chỉ cần ĐỌC
+> `.material` là Unity nhân bản material cho riêng renderer đó — mỗi con quái một bản sao, vừa rò rỉ bộ nhớ theo
+> số lần spawn từ Pool vừa phá batching. `MaterialPropertyBlock` đổi được giá trị cho từng renderer mà vẫn dùng
+> chung đúng 1 material. Luôn `GetPropertyBlock()` trước khi sửa, nếu không sẽ xóa sạch property khác đã set.
+
+> **Màu gốc chụp đúng 1 LẦN ở `Awake()`, TUYỆT ĐỐI không chụp lại ở đầu mỗi `Flash()`**: trúng 2 phát đạn liền
+> nhau thì lần thứ 2 sẽ chụp nhầm màu ĐANG nháy làm "màu gốc" và sprite kẹt màu đỏ vĩnh viễn. Cùng nguyên tắc
+> với `baseMaxHP`/`statsCaptured` của `Enemy` (mục 4).
+
+> **Đếm giờ trong `Update()` chứ KHÔNG dùng Coroutine**: quái chết giữa lúc đang nháy sẽ bị trả về Pool →
+> `SetActive(false)` → coroutine bị giết ngang, màu không kịp trả lại, con quái đó lần sau spawn ra vẫn đỏ lòm.
+> `OnEnable`/`OnDisable` cũng khôi phục màu để bịt nốt kẽ hở.
+
+[HealthBarJuice.cs](Assets/Scripts/UI/HealthBarJuice.cs) — vệt "máu vừa mất" trôi chậm phía sau + nháy màu
+thanh. **Tự quan sát `fillAmount` của `mainFill` mỗi frame** thay vì bắt `Player`/`Enemy` gọi vào: nhờ vậy
+KHÔNG phải sửa `UpdateHPBar()` của bên nào, và gắn được lên bất kỳ thanh `Filled` nào trong project (máu Player,
+máu Enemy, sau này là khiên/stamina) mà bên kia không cần biết component này tồn tại. Chỉ phản ứng khi fill
+GIẢM; tăng (hồi máu) thì kéo vệt lên theo ngay.
+
+**Âm thanh — LUÔN dùng `AudioManager.PlaySFXThrottled()` cho tiếng trúng đòn**, không dùng `PlaySFX()` thường:
+
+> 1 viên đạn nổ lan của Mage, 1 phát Laser xuyên thấu, hay 1 tick DOT aura (mục 8.4) có thể gây damage cho hàng
+> chục con quái trong **CÙNG 1 FRAME** → bấy nhiêu lần `PlayOneShot` chồng lên nhau, nghe như tiếng rè và âm
+> lượng bị đội lên gấp mấy chục lần. Hàm này đếm riêng theo TỪNG clip (để tiếng Player ăn đòn không bị tiếng
+> trúng quái nuốt mất) và dùng `Time.unscaledTime` vì `Time.time` đứng yên khi `timeScale = 0`.
+
+Clip đặt ở `Enemy.hitSound` (mỗi loại quái một tiếng) và `Player.hurtSound`.
+
+**Thứ tự trong `TakeDmg()`**: nháy + kêu phải chạy **TRƯỚC** khi kiểm tra `currentHP <= 0`/`Die()`. Đặt sau thì
+đòn kết liễu im re và không nháy gì — mà đó lại đúng là lúc cần phản hồi rõ nhất (với Enemy thì object còn đã bị
+trả về Pool rồi). Ở Player, đoạn juice nằm sau `isInvulnerable` nên lúc Xoay Kiếm bất tử sẽ không nháy — đúng ý
+đồ: không nháy = không mất máu.
+
+### Số sát thương bay lên & hiệu ứng hồi máu
+
+[DamagePopup.cs](Assets/Scripts/Effects/DamagePopup.cs) (con số bay lên + mờ dần) +
+[DamagePopupSpawner.cs](Assets/Scripts/Effects/DamagePopupSpawner.cs) (singleton giữ prefab, đặt 1 cái mỗi Scene
+Level). Cả `Enemy.TakeDmg()` lẫn `Player.TakeDmg()` đều gọi, màu khác nhau để phân biệt ai đang ăn đòn.
+
+> **Prefab phải dùng `TextMeshPro` (world space), KHÔNG phải `TextMeshProUGUI`** (loại nằm trong Canvas) — số
+> phải ở world space mới bám đúng vị trí con quái. Code đọc qua `TMP_Text` (lớp cha) nên kiểu nào cũng biên dịch
+> được, sai kiểu thì chỉ phát hiện lúc chạy.
+
+> **2 mặc định SAI của TextMeshPro world-space, đã ép lại trong `DamagePopup.Awake()`** — cả 2 đều gây lỗi rất
+> khó đoán nguyên nhân nên đừng gỡ ra:
+> - **Căn lề**: object `TextMeshPro` 3D mặc định có RectTransform rộng **20 đơn vị** và căn **Top-Left**, nên chữ
+>   vẽ ở mép trái khung → con số hiện lệch cả chục đơn vị sang trái so với chỗ spawn, trông y như tính sai vị trí
+>   trong khi vị trí hoàn toàn đúng. Ép `alignment = Center` + `pivot = (0.5, 0.5)`.
+> - **Color Gradient**: `TMP.color` là màu NHÂN với gradient đỉnh. Prefab bật `Color Gradient` (nhất là gradient
+>   tối) sẽ nuốt sạch màu do code set → con số luôn ra **đen**. Ép `enableVertexGradient = false`.
+>
+> Còn 1 nguồn "luôn đen" nữa mà code không ép được: **Face Color của material font TMP**. `.color` cũng nhân với
+> nó, nên material face đen thì mọi màu đều ra đen — phải sửa trong material.
+
+> Script `DamagePopup` phải nằm ở **object GỐC** của prefab. Đặt nhầm vào object con thì `Setup()` không bao giờ
+> chạy, con số giữ nguyên nội dung + màu gõ sẵn trong prefab và trông y như code set màu sai. Spawner có tìm
+> thêm ở con và log cảnh báo nếu không thấy component nào.
+
+> **Prefab giữ ở SPAWNER chứ không phải trên từng prefab quái**: để field trên mỗi Enemy thì thêm loại quái mới
+> lại phải nhớ kéo prefab vào, quên là con đó im lặng không hiện số. Gom về 1 chỗ thì quên gán là KHÔNG con nào
+> hiện số — sai là thấy ngay.
+
+> Sát thương lẻ (tick DOT 20% của 10 dmg, hoặc 0.4) làm tròn về 0 trông như đánh hụt, nên popup luôn hiện tối
+> thiểu **1** khi thực sự có gây damage.
+
+**Hiệu ứng hồi máu** (`Player.healEffectPrefab`): spawn trong `Player.Heal()` và `RestoreFullHP()` nên phủ cả 3
+nguồn hồi máu (hút máu, Heart, USB) mà không phải sửa `PlayerCollision`. Gắn làm con của Player để bám theo.
+
+> **BẮT BUỘC có `healEffectMinInterval`**: hút máu kích hoạt theo MỖI viên đạn trúng quái, mà 1 phát nổ lan của
+> Mage trúng cả đàn thì `Heal()` bị gọi hàng chục lần trong 1 frame. Cùng họ với `PlaySFXThrottled` ở trên.
+>
+> Lời gọi nằm TRONG khối `if (currentHP < maxHP)` nên máu đầy thì không hiện gì — không hồi được thì đừng báo
+> là có. `RestoreFullHP()` còn kiểm tra `currentHP > 0` vì `ApplyCharacterData`/`ApplyShopUpgrades` cũng gọi nó
+> lúc khởi tạo màn chơi, khi đó chưa có gì để "hồi".
+
+### Đẩy lùi Enemy khi trúng đòn (knockback)
+
+`Enemy` có 2 nạp chồng: **`TakeDmg(dmg)` = KHÔNG đẩy lùi**, **`TakeDmg(dmg, sourcePosition)` = có đẩy lùi**, hướng
+tính từ nguồn sát thương ra. Chỉnh độ mạnh bằng `knockbackDistance` (0.15) / `knockbackDuration` (0.08) trên từng
+prefab; **để `knockbackDistance = 0` là miễn nhiễm** — dùng cho Boss, không cần sửa code.
+
+> **Tách 2 nạp chồng thay vì tự suy hướng từ vị trí Player** vì sát thương THEO TICK bắt buộc phải gọi bản không
+> hướng: `PotionZone`, DOT aura của mã độc (1 phút = 120 tick) và Xoay Kiếm của Knight (~33 tick) mà đẩy lùi mỗi
+> tick thì sẽ hất con quái ra khỏi bản đồ, biến mọi vùng DOT thành tường chắn. Đang gọi bản CÓ hướng: đạn thường
+> + nổ lan (`PlayerBullet`), `Bomb`, `Explosion`, `MiniRobot`, Laser (từ tâm nhân vật), chém thường của Knight.
+
+> **Đẩy lùi xử lý ở `LateUpdate()` CHỨ KHÔNG PHẢI `Update()`** — đây là điểm mấu chốt khiến nó chạy cho MỌI loại
+> quái mà không phải sửa subclass nào: `RangedEnemy`/`USBEnemy`/`BossEnemy` đều override `Update()` và phần lớn
+> KHÔNG gọi `base.Update()`, nên nhét vào `Update()` của base là mất tác dụng với đúng những con thú vị nhất.
+> `LateUpdate` chạy sau mọi `Update` nên ghi đè lên bất kỳ kiểu di chuyển nào con đó vừa thực hiện.
+>
+> **Hệ quả**: subclass nào cần `LateUpdate()` riêng thì PHẢI khai báo `protected override` + gọi `base.LateUpdate()`
+> (xem `USBEnemy`). Khai báo lại thành `private void LateUpdate()` sẽ CHE mất hàm của base — Unity chỉ gọi hàm ở
+> lớp dẫn xuất nhất — và con quái đó âm thầm miễn nhiễm đẩy lùi mà không báo lỗi gì.
+
+---
+
+## 8.7 Panel giới thiệu nhân vật & điều hướng menu từ trong màn chơi
+
+### Panel giới thiệu nhân vật
+
+[CharacterInfoPanel.cs](Assets/Scripts/UI/CharacterInfoPanel.cs). Bấm vào **bất kỳ** nhân vật nào (khóa hay chưa)
+đều mở panel giới thiệu: tên, Ranged/Melee, chỉ số, chiêu, lõi riêng. Mở ĐÈ LÊN màn chọn nhân vật.
+
+Panel tự đổi mặt theo trạng thái khóa:
+- **Đã mở khóa** → hiện nút Vào chơi, ẩn 2 nút thanh toán.
+- **Chưa mở khóa** → ẩn nút Vào chơi, hiện nút trả bằng Coin / Kim cương **ngay tại panel này**.
+
+Mua xong panel **KHÔNG đóng** mà vẽ lại thành trạng thái đã mở khóa, để bấm Vào chơi luôn.
+
+> **Phải xem được info của nhân vật CHƯA mở khóa** — đó chính là thông tin để quyết định có mua hay không.
+> Bắt mua trước rồi mới cho xem là ngược.
+
+**Panel này gộp luôn vai trò của [CharacterUnlockPanel.cs](Assets/Scripts/UI/CharacterUnlockPanel.cs) cũ** (modal
+mua riêng). Script cũ vẫn còn trong project và `CharacterButton` vẫn giữ ô `unlockPanel`, nhưng chỉ còn là nhánh
+dự phòng khi chưa gán `Info Panel`. **`LoadScene` chỉ còn ở đúng 1 chỗ: nút Vào chơi của panel này.**
+
+> **Listener của 4 nút được nối bằng code trong `Awake()`** (Vào chơi / Quay lại / trả Coin / trả Kim cương).
+> ĐỪNG gán thêm hàm vào `OnClick` của chúng trong Inspector — mỗi cú bấm sẽ chạy 2 lần. `TryUnlock()` có guard
+> `IsCharacterUnlocked` chặn mua lần 2 nên không mất tiền oan, nhưng guard đó là để chống bấm nhanh 2 nhịp trên
+> mobile chứ không phải để dung túng việc nối listener đôi.
+
+> **Chỉ số hiện ra là chỉ số GỐC của nhân vật, CỐ Ý không cộng bonus Shop**: đây là bảng so sánh giữa các nhân
+> vật với nhau, mà bonus Shop áp cho mọi nhân vật như nhau nên cộng vào chỉ làm nhiễu phần khác biệt thật sự.
+>
+> `baseMaxHP`/`baseMoveSpeed` = 0 nghĩa là "giữ nguyên giá trị trên Player trong Scene" (mục 3), mà panel này
+> không đọc được Scene Level — nên có 2 ô `fallbackMaxHP`/`fallbackMoveSpeed` **phải khai lại cho khớp Player
+> trong Scene Level**, nếu không nhân vật đó hiện HP = 0.
+>
+> **`CharacterData.baseRegen` là field MỚI** thêm cùng panel này: trước đó regen hoàn toàn không phải chỉ số
+> riêng của nhân vật (chỉ đến từ Shop + augment), nên panel sẽ hiện 0 cho tất cả. Nó là chỉ số THẬT — 
+> `Player.ApplyCharacterData()` gọi `StartHealthRegen(baseRegen)`, và vì hàm đó CỘNG DỒN nên lượng hồi máu mua ở
+> Shop (áp sau) vẫn cộng thêm chứ không bị ghi đè.
+
+**Danh sách lõi tự sinh từ `CharacterData.exclusiveAugments`**, nhưng **CHỈ lấy các type nằm trong
+`featuredCoreTypes`** (mặc định `Bomb`, `Potion`, `SwordSpin`, `MiniRobot`). `exclusiveAugments` còn chứa cả đống
+augment chỉ nâng chỉ số (`Bullet`, `Reload`, `AttackSpeed`, `StaminaRegen`, `BlinkCooldown`…) — liệt kê hết thì
+phần này dài lê thê và mất luôn ý nghĩa "lõi đặc biệt". Đúng 4 type đó cũng chính là nhóm augment "mở khóa lõi,
+chỉ chọn 1 lần" ở mục 5.2. Thêm nhân vật mới có lõi riêng thì thêm type vào mảng đó trong Inspector, không sửa code.
+
+**Chiêu đặc biệt**: `CharacterData.abilityDescription` (tự viết) luôn thắng. Để trống thì panel tự sinh mô tả cho
+4 nhân vật hiện có — Gunner `Dash`, Mage `Blink`, Knight **Khiên** (chống chịu + tăng tốc), Robot **Laser**
+(bắn thường tích năng lượng).
+
+> Phần tự sinh KHÔNG thể chỉ dựa vào `abilityType`: nó chỉ có `Dash`/`Blink`/`None`, mà **Knight lẫn Robot đều
+> rơi vào `None`** dù chiêu của 2 đứa hoàn toàn khác nhau. Panel phải nhìn thêm `combatType == Melee` (Knight) và
+> `usesAmmo == false` (Robot) — đúng những field mà `Player.cs`/`Gun.cs` cũng đang dùng để phân biệt chúng.
+> Nhân vật thứ 5 không khớp 4 khuôn này thì **phải** điền `abilityDescription`.
+
+### Điều hướng từ Pause / Thua / Thắng
+
+Scene Level và Scene MainMenu là 2 Scene khác nhau nên không gọi thẳng hàm của nhau được. Các nút đặt cờ
+`GameProgress.PendingPanel` (+ `AdvanceToNextStage`) rồi `LoadScene`, `MainMenuUI.Start()` đọc cờ và mở đúng
+panel. Cờ được **xóa ngay sau khi dùng** (`ConsumePendingPanel`) để lần mở game sau không bị nhảy panel bất ngờ.
+
+| Màn hình | Nút | Hàm trên `GameManager` |
+|---|---|---|
+| Pause | Chơi lại | `ShowRestartConfirm()` → modal → `RestartLevel()` |
+| Pause | Thoát | `ShowExitConfirm()` → modal → `BackToMainMenu()` |
+| Thua | Chơi lại / Chọn nhân vật / Chọn Level | `RestartLevel()` / `BackToCharacterSelect()` / `BackToStageSelect()` |
+| Thắng | Chơi lại / Màn tiếp theo / Chọn Level | `RestartLevel()` / `NextLevel()` / `BackToStageSelect()` |
+
+> **Nút Chơi lại ở Pause CŨNG phải đi qua modal cảnh báo**, không gọi thẳng `RestartLevel()`: chơi lại giữa chừng
+> cũng là bỏ dở ván nên mất sạch coin/kim cương y hệt như thoát ra (mục 8.1). Modal `exitConfirmPanel` được dùng
+> CHUNG cho cả 2 nút, `pendingConfirmAction` nhớ nút nào vừa bấm và `confirmMessageText` đổi nội dung theo.
+> Ở màn Thua/Thắng thì gọi thẳng `RestartLevel()` vì `CommitRunCurrency()` đã chạy rồi.
+
+> **`ConfirmExitToMainMenu()` giữ nguyên tên** dù nay xử lý cả 2 hành động — nó đã được nối sẵn vào nút Yes trong
+> Editor, đổi tên là nút mất tham chiếu mà Unity không báo lỗi gì.
+
+> **Việc tra ra Level kế tiếp làm ở `MainMenuUI`, KHÔNG phải trong Scene Level**: danh sách toàn bộ Level chỉ tồn
+> tại ở `StageSelectPager.allStages` bên Scene MainMenu. `GetStageByIndex()` tra theo `stageIndex` chứ không theo
+> vị trí trong mảng — mảng có thể bị xếp lộn hoặc thiếu một Level, lúc đó dùng vị trí sẽ nhảy sang nhầm màn mà
+> không báo lỗi. Không tìm được Level kế tiếp (vừa phá đảo Level cuối) thì rơi về màn chọn Level, chứ KHÔNG mở
+> màn chọn nhân vật với Stage cũ — làm vậy người chơi sẽ chơi lại đúng màn vừa thắng mà tưởng đang sang màn mới.
+
+---
+
 ## 9. Object Pooling
 
 [`ObjectPoolManager.cs`](Assets/Scripts/Managers/ObjectPoolManager.cs) — 1 `ObjectPool<GameObject>` riêng cho MỖI
@@ -744,13 +970,20 @@ Weapons/
 Enemies/
   Enemy.cs                  — Base abstract: HP/move/collision/stage-difficulty dùng chung
   BasicEnemy/MiniEnemy/EnergyEnemy/HealEnemy/ExplosionEnemy/RangedEnemy.cs — Override tối thiểu theo hành vi riêng
-  USBEnemy.cs                 — Rơi vật phẩm USB, chiêu vận sức rồi lướt; spawn theo mốc 50 mạng (mục 6.3)
+  USBEnemy.cs                 — Rơi vật phẩm USB; spawn theo mốc 50 mạng (mục 6.3)
+  EnemyDashSkill.cs           — Component chiêu Lướt dùng chung (USBEnemy tự kích hoạt, Boss gọi tay) — mục 6.3
   BossEnemy.cs                — Skill ngẫu nhiên, hồi sinh, Teleport có telegraph
   EnemySpawner.cs              — Spawn định kỳ + đếm mạng để spawn USBEnemy; tăng tốc spawn theo currentLevel (5, 10)
   HeartPickup.cs                — healValue cho vật phẩm Heart
 
 Effects/
   Explosion.cs                 — Hiệu ứng nổ (dùng bởi Bomb, tự dọn)
+  DamageFlash.cs               — Nháy màu/nháy sáng sprite khi ăn đòn, dùng chung Player/Enemy (mục 8.6)
+  DamagePopup.cs               — Con số sát thương bay lên rồi mờ dần (mục 8.6)
+  DamagePopupSpawner.cs        — Singleton giữ prefab con số + màu riêng cho Player/Enemy (mục 8.6)
+
+Shaders/
+  SpriteFlash.shader           — Bản sao URP Sprite-Lit-Default + _FlashColor/_FlashAmount (mục 8.6)
 
 NPC/
   InteractableNPC.cs           — Base abstract: dò khoảng cách Player + hiện/nối nút tương tác (dùng chung mọi NPC)
@@ -764,7 +997,9 @@ UI/
   CharacterSelectPager.cs / StageSelectPager.cs — Chia trang nhân vật/Level, lật bằng 2 nút < >
                                   (các ô nút dùng chung, nạp data theo trang)
   CharacterUnlockPanel.cs       — Modal xác nhận mua nhân vật, chọn trả bằng Coin hoặc Kim cương
+  CharacterInfoPanel.cs         — Panel giới thiệu nhân vật trước khi vào màn; nơi DUY NHẤT gọi LoadScene (mục 8.7)
   CurrencyUI.cs                 — Hiển thị số Coin/Kim cương, tự cập nhật qua event
+  HealthBarJuice.cs             — Vệt máu vừa mất trôi chậm + nháy thanh; tự quan sát fillAmount (mục 8.6)
   ShopUpgradeButton.cs          — 1 dòng chỉ số trong Shop (cấp, giá, phần thưởng mức kế, nút Mua)
   CoinExchangeButton.cs         — Ô đổi Coin sang Kim cương
   DragAimButton.cs (abstract) → BombButton.cs / PotionButton.cs / BlinkButton.cs (chọn ĐIỂM)
@@ -807,6 +1042,7 @@ UI/
 | `Coroutine couldn't be started because the game object 'X' is inactive!` khi mở panel | Coroutine chỉ chạy được khi **object gắn script** đang bật. Hai biến thể: (a) script nằm trên chính object nó tự `SetActive(false)` trong `Awake()`, mà lệnh bật lại nằm BÊN TRONG coroutine; (b) `panelRoot` trỏ tới object CON còn object cha gắn script mới là cái đang tắt — **bật con KHÔNG làm cha sống lại** | Trong hàm public, TRƯỚC `StartCoroutine`: bật **cả `gameObject` của script lẫn panel** (2 cái có thể khác nhau), set `Time.timeScale`, rồi mới `StartCoroutine` và chỉ để coroutine lo phần fade/đếm giờ. Thêm guard `if (!gameObject.activeInHierarchy)` để lỡ có object cha đang tắt thì bỏ hiệu ứng chứ không ném lỗi |
 | Màn hình mở ra từ nút hành động của hội thoại NPC không dừng được game (`timeScale` tự về 1) | `NPCDialogueUI.OnAction()` gọi callback TRƯỚC rồi mới `CloseDialogue()` — mà hàm đó set `Time.timeScale = 1f`, ghi đè luôn giá trị 0 mà callback vừa set | Đóng hội thoại TRƯỚC, gọi callback SAU (giữ lại tham chiếu callback trước khi đóng). Quy tắc: hàm dọn dẹp khôi phục trạng thái toàn cục phải chạy TRƯỚC callback của người dùng, không phải sau |
 | Gom đủ USB TRƯỚC khi nhận nhiệm vụ NPC → nhận xong quay lại NPC vẫn đòi "thêm 0 viên", phải nhặt dư 1 viên mới hoàn thành được | Điều kiện hoàn thành CHỈ được kiểm tra trong sự kiện nhặt USB. Đã đủ từ trước thì lúc nhận nhiệm vụ không có sự kiện nào bắn ra để kích hoạt kiểm tra | Tách ra `CheckQuestProgress()` và gọi thêm ở `AcceptQuest()` + `OnInteract()`. **Quy tắc: điều kiện dựa trên tài nguyên dùng chung phải kiểm tra lại LÚC CẦN DÙNG, đừng chỉ dựa vào sự kiện thay đổi tài nguyên** |
+| Một loại Enemy cụ thể không bị đẩy lùi (hoặc không chạy logic nào đó của base) trong khi các loại khác vẫn bình thường, không có lỗi nào | Subclass khai báo `private void LateUpdate()` (hay `Update`/`OnEnable`) trùng tên với hàm của base → **CHE** mất hàm base, Unity chỉ gọi hàm ở lớp dẫn xuất nhất | Subclass phải `protected override` + gọi `base.<hàm>()`. Đây là lỗi im lặng hoàn toàn: C# chỉ cảnh báo, Unity không báo gì |
 | Nút trong Canvas **World Space** hiện ra nhưng bấm không ăn, dù đã đủ Graphic Raycaster + Event Camera | Canvas **Screen Space - Overlay** (GameUI) LUÔN ăn raycast trước World Space. Chỉ cần 1 Image của GameUI phủ lên vùng đó với `Raycast Target` bật (kể cả trong suốt) là click không xuống tới nơi | Kiểm chứng: Play mode → tắt GameObject `GameUI` → bấm lại. Cách tránh hẳn: để nút TRONG GameUI rồi gắn [UIFollowWorldTarget.cs](Assets/Scripts/UI/UIFollowWorldTarget.cs) cho nó bám theo vị trí world của object |
 
 ---

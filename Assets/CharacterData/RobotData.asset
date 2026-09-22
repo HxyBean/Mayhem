@@ -18,12 +18,15 @@ MonoBehaviour:
   diamondPrice: 3
   baseBulletDamage: 50
   baseMaxHP: 150
-  baseMoveSpeed: 4.5
+  baseMoveSpeed: 5
+  baseRegen: 0.5
   combatType: 0
   bulletPrefab: {fileID: 6102857613693667754, guid: cfc4ce040f8c7334595c116db5803b4b, type: 3}
   usesAmmo: 0
   shotDelay: 0.6
   abilityType: 2
+  abilityDescription: After 6 attacks, one laser attack is charged, dealing 200%
+    damage to all enemies it passes through. The shot delay is limited to 0.6s.
   animatorController: {fileID: 22100000, guid: eb987ac88fb555f4db6ed0330854b056, type: 2}
   idleSprite: {fileID: 6509533086917369203, guid: c71501445bb81654c866550f5609463b, type: 3}
   selectIcon: {fileID: 6509533086917369203, guid: c71501445bb81654c866550f5609463b, type: 3}

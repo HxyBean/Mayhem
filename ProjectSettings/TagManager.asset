@@ -99,6 +99,9 @@ TagManager:
   - name: BossRevive
     uniqueID: 2016025315
     locked: 0
+  - name: PopUpText
+    uniqueID: 319663797
+    locked: 0
   - name: GameUI
     uniqueID: 2554026413
     locked: 0

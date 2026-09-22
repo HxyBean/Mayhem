@@ -43,6 +43,10 @@ public class CharacterData : ScriptableObject
     [Tooltip("Tốc độ di chuyển riêng của nhân vật này. Để 0 = giữ nguyên giá trị mặc định đang set sẵn trên Player trong Scene.")]
     public float baseMoveSpeed = 0f;
 
+    [Tooltip("Lượng máu tự hồi mỗi giây, riêng của nhân vật này (0 = không tự hồi). CỘNG THÊM với lượng hồi máu " +
+             "mua ở Shop chứ không ghi đè. Đây là chỉ số thật, có tác dụng trong màn chơi - không chỉ để hiển thị.")]
+    public float baseRegen = 0f;
+
     [Header("Chiến đấu")]
     [Tooltip("Ranged = dùng Gun.cs (đạn, ammo/mana). Melee = dùng KnightCombat.cs (tự động chém quanh nhân vật, stamina).")]
     public CombatType combatType = CombatType.Ranged;
@@ -60,6 +64,13 @@ public class CharacterData : ScriptableObject
 
     [Tooltip("Khả năng di chuyển đặc biệt: Dash (Gunner), Blink (Mage), hoặc None (Knight - không có)")]
     public AbilityType abilityType = AbilityType.Dash;
+
+    [Header("Giới thiệu (panel thông tin trước khi vào màn)")]
+    [Tooltip("Mô tả các chiêu đặc biệt của nhân vật, hiện ở panel giới thiệu. Viết tự do, mỗi chiêu 1 dòng.\n" +
+             "CẦN tự viết vì abilityType chỉ có Dash/Blink/None, không diễn tả được Laser của Robot hay " +
+             "Khiên/Xoay Kiếm của Knight. Để trống = panel tự sinh 1 dòng theo abilityType.")]
+    [TextArea(2, 6)]
+    public string abilityDescription = "";
 
     [Header("Tạo hình")]
     [Tooltip("Animator Controller riêng của nhân vật này (khuyên dùng Animator Override Controller trỏ về cùng 1 State Machine gốc, chỉ đổi clip). Để trống = giữ nguyên Animator Controller đang gắn sẵn trên Player.")]

@@ -17,13 +17,15 @@ MonoBehaviour:
   coinPrice: 100
   diamondPrice: 5
   baseBulletDamage: 10
-  baseMaxHP: 100
+  baseMaxHP: 120
   baseMoveSpeed: 4
+  baseRegen: 0.5
   combatType: 0
   bulletPrefab: {fileID: 2284842994325187707, guid: a7ad01b9a9d9acd408921d3a9c5aeaf5, type: 3}
   usesAmmo: 1
   shotDelay: 0
   abilityType: 0
+  abilityDescription: "\rDash quickly in the direction of movement."
   animatorController: {fileID: 0}
   idleSprite: {fileID: 0}
   selectIcon: {fileID: -2311659948842064771, guid: 832996a2ed736094287b6a54030d2d1a, type: 3}

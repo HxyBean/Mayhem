@@ -13,7 +13,7 @@ public class GameManager : MonoBehaviour
     [Header("Game Stats")]
     [SerializeField] private int energyThreshold = 10;
     [SerializeField] private int usbThreshold = 3;
-    [SerializeField] private float xpToLevelUp = 10f;
+    [SerializeField] private float xpToLevelUp = 20f;
     public int currentLevel = 1;
 
     [Header("Enemy & Boss Management")]
@@ -33,8 +33,19 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject gameOverMenu;
     [SerializeField] private GameObject pauseMenu;
     [SerializeField] private GameObject winMenu;
-    [Tooltip("Modal cảnh báo khi bấm Thoát ở màn Pause (thoát giữa chừng sẽ mất sạch coin/kim cương của ván này)")]
+    [Tooltip("Modal cảnh báo khi bấm Thoát HOẶC Chơi lại ở màn Pause (bỏ dở ván sẽ mất sạch coin/kim cương). " +
+             "Dùng CHUNG cho cả 2 nút, nội dung cảnh báo đổi theo nút vừa bấm")]
     [SerializeField] private GameObject exitConfirmPanel;
+    [Tooltip("Text nội dung trong modal trên. Để trống nếu muốn giữ nguyên câu chữ đã gõ sẵn trong Editor")]
+    [SerializeField] private TextMeshProUGUI confirmMessageText;
+    [SerializeField, TextArea(2, 4)]
+    private string exitWarningMessage = "Thoát ra giữa chừng sẽ mất toàn bộ Coin và Kim cương nhặt được trong ván này. Vẫn thoát?";
+    [SerializeField, TextArea(2, 4)]
+    private string restartWarningMessage = "Chơi lại sẽ mất toàn bộ Coin và Kim cương nhặt được trong ván này. Vẫn chơi lại?";
+
+    // Modal xác nhận dùng chung cho 2 nút nên phải nhớ nút nào vừa bấm
+    private enum PendingConfirmAction { ExitToMainMenu, RestartLevel }
+    private PendingConfirmAction pendingConfirmAction = PendingConfirmAction.ExitToMainMenu;
 
     [Header("Camera & Audio")]
     [SerializeField] private CinemachineCamera cam;
@@ -170,9 +181,65 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(mainMenuSceneName);
     }
 
+    // ==============================================
+    // ĐIỀU HƯỚNG TỪ MÀN PAUSE / THUA / THẮNG
+    // ==============================================
+    // Chơi lại chính Level đang chơi. Từ Pause thì đi qua modal cảnh báo (mất tiền của ván), từ Thua/Thắng thì
+    // gọi thẳng vì CommitRunCurrency() đã chạy rồi - cờ runCurrencyCommitted chặn cộng 2 lần.
+    public void RestartLevel()
+    {
+        Time.timeScale = 1f;
+        GameProgress.SaveNow();
+
+        string sceneName = (currentStage != null && !string.IsNullOrEmpty(currentStage.sceneName))
+            ? currentStage.sceneName
+            : SceneManager.GetActiveScene().name; // Play thẳng Scene trong Editor không có currentStage
+
+        SceneManager.LoadScene(sceneName);
+    }
+
+    // Quay về màn CHỌN LEVEL
+    public void BackToStageSelect()
+    {
+        GameProgress.PendingPanel = GameProgress.MenuPanel.StageSelect;
+        BackToMainMenu();
+    }
+
+    // Quay về màn CHỌN NHÂN VẬT của chính Level đang chơi (đổi tướng rồi chơi lại màn này)
+    public void BackToCharacterSelect()
+    {
+        GameProgress.PendingPanel = GameProgress.MenuPanel.CharacterSelect;
+        GameProgress.AdvanceToNextStage = false;
+        BackToMainMenu();
+    }
+
+    // Nút "Màn tiếp theo" ở màn hình Thắng: sang Level kế tiếp và chọn tướng luôn cho màn đó.
+    // Việc tra ra Level kế tiếp do MainMenuUI làm, vì danh sách toàn bộ Level chỉ tồn tại ở Scene MainMenu.
+    public void NextLevel()
+    {
+        GameProgress.PendingPanel = GameProgress.MenuPanel.CharacterSelect;
+        GameProgress.AdvanceToNextStage = true;
+        BackToMainMenu();
+    }
+
     // Nút "Thoát" trên Pause panel - cảnh báo trước thay vì thoát ngay, vì bỏ dở ván sẽ mất sạch tiền đã nhặt
     public void ShowExitConfirm()
     {
+        ShowConfirm(PendingConfirmAction.ExitToMainMenu, exitWarningMessage);
+    }
+
+    // Nút "Chơi lại" trên Pause panel - CŨNG phải cảnh báo: chơi lại giữa chừng cũng là bỏ dở ván, mất sạch
+    // coin/kim cương y hệt như thoát ra. Chơi lại mà mất tiền không báo trước là một bất ngờ khó chịu.
+    public void ShowRestartConfirm()
+    {
+        ShowConfirm(PendingConfirmAction.RestartLevel, restartWarningMessage);
+    }
+
+    private void ShowConfirm(PendingConfirmAction action, string message)
+    {
+        pendingConfirmAction = action;
+
+        if (confirmMessageText != null && !string.IsNullOrEmpty(message)) confirmMessageText.text = message;
         if (exitConfirmPanel != null) exitConfirmPanel.SetActive(true);
     }
 
@@ -181,10 +248,18 @@ public class GameManager : MonoBehaviour
         if (exitConfirmPanel != null) exitConfirmPanel.SetActive(false);
     }
 
-    // Nút "Yes" trên modal cảnh báo - cố tình KHÔNG gọi CommitRunCurrency() nên toàn bộ coin/kim cương nhặt
-    // được trong ván này bị bỏ đi, đúng như lời cảnh báo.
+    // Nút "Yes" trên modal cảnh báo. GIỮ NGUYÊN TÊN HÀM vì nó đã được nối sẵn vào nút trong Editor - đổi tên là
+    // nút mất tham chiếu mà Unity không báo lỗi gì.
+    // Cố tình KHÔNG gọi CommitRunCurrency() ở cả 2 nhánh, nên toàn bộ coin/kim cương nhặt được trong ván này bị
+    // bỏ đi, đúng như lời cảnh báo.
     public void ConfirmExitToMainMenu()
     {
+        if (pendingConfirmAction == PendingConfirmAction.RestartLevel)
+        {
+            RestartLevel();
+            return;
+        }
+
         BackToMainMenu();
     }
 
@@ -267,7 +342,7 @@ public class GameManager : MonoBehaviour
     {
         currentLevel++;
         currentXP -= xpToLevelUp;
-        xpToLevelUp *= 1.15f; // Tăng yêu cầu XP cho cấp sau
+        xpToLevelUp *= 1.075f; // Tăng yêu cầu XP cho cấp sau
 
         UpdateXPBar();
         UpdateLevelText();

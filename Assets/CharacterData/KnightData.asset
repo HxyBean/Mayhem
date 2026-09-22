@@ -19,11 +19,14 @@ MonoBehaviour:
   baseBulletDamage: 30
   baseMaxHP: 250
   baseMoveSpeed: 6
+  baseRegen: 2
   combatType: 1
   bulletPrefab: {fileID: 0}
   usesAmmo: 1
   shotDelay: 0
   abilityType: 2
+  abilityDescription: Increases resistance by 60% and movement speed by 30%, basic
+    attacks will automatically attack every 1 second.
   animatorController: {fileID: 22100000, guid: 26b165dae72482843863cca7e8f7cae9, type: 2}
   idleSprite: {fileID: 1708082554452059069, guid: 99a0eef51d6ec884688e7e81771a4270, type: 3}
   selectIcon: {fileID: 1708082554452059069, guid: 99a0eef51d6ec884688e7e81771a4270, type: 3}
@@ -35,7 +38,7 @@ MonoBehaviour:
   reloadButtonIcon: {fileID: 0}
   exclusiveAugments:
   - name: SWORDSPIN
-    description: swordspin
+    description: Spins the sword around, deals damage and becomes immune
     type: SwordSpin
     requiredLevel: 3
   - name: SwordSpinCooldown

@@ -12,11 +12,69 @@ public class MainMenuUI : MonoBehaviour
              "panel Chọn nhân vật, không thay thế panel phía sau")]
     [SerializeField] private GameObject shopPanel;
 
+    [Tooltip("Pager của màn chọn Level - dùng để tra Level kế tiếp cho nút 'Màn tiếp theo' ở màn hình Thắng. " +
+             "PHẢI gán tay: panel đang tắt nên FindFirstObjectByType mặc định không tìm thấy")]
+    [SerializeField] private StageSelectPager stageSelectPager;
+
     private void Start()
     {
         // Phòng trường hợp Scene trước đó (Pause/GameOver) rời đi khi Time.timeScale đang = 0
         Time.timeScale = 1f;
-        ShowMainMenu();
+
+        OpenPendingPanel();
+    }
+
+    // Từ trong màn chơi quay về đây, các nút Thua/Thắng đặt cờ GameProgress.PendingPanel để nói rõ muốn mở
+    // panel nào thay vì luôn rơi về Main Menu bắt người chơi bấm lại từ đầu.
+    private void OpenPendingPanel()
+    {
+        GameProgress.MenuPanel pending = GameProgress.ConsumePendingPanel();
+
+        switch (pending)
+        {
+            case GameProgress.MenuPanel.StageSelect:
+                ShowStageSelect();
+                return;
+
+            case GameProgress.MenuPanel.CharacterSelect:
+                if (GameProgress.AdvanceToNextStage)
+                {
+                    GameProgress.AdvanceToNextStage = false;
+
+                    // Không tìm được Level kế tiếp (vừa phá đảo Level cuối) thì rơi về màn chọn Level, chứ
+                    // KHÔNG mở màn chọn nhân vật với Stage cũ - làm vậy là người chơi bấm Vào chơi rồi chơi lại
+                    // đúng màn vừa thắng mà tưởng đang sang màn mới.
+                    if (!TryAdvanceToNextStage())
+                    {
+                        ShowStageSelect();
+                        return;
+                    }
+                }
+
+                if (GameProgress.SelectedStage == null)
+                {
+                    ShowStageSelect();
+                    return;
+                }
+
+                ShowCharacterSelect();
+                return;
+
+            default:
+                ShowMainMenu();
+                return;
+        }
+    }
+
+    private bool TryAdvanceToNextStage()
+    {
+        if (stageSelectPager == null || GameProgress.SelectedStage == null) return false;
+
+        StageData next = stageSelectPager.GetStageByIndex(GameProgress.SelectedStage.stageIndex + 1);
+        if (next == null) return false;
+
+        GameProgress.SelectedStage = next;
+        return true;
     }
 
     private void HideAllPanels()

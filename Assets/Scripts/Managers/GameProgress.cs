@@ -32,6 +32,34 @@ public static class GameProgress
     public static CharacterData SelectedCharacter { get; set; }
 
     // ==============================================
+    // ĐIỀU HƯỚNG KHI QUAY VỀ MAIN MENU TỪ TRONG MÀN CHƠI
+    // ==============================================
+    public enum MenuPanel
+    {
+        None,            // Mặc định: mở Main Menu như bình thường
+        StageSelect,
+        CharacterSelect
+    }
+
+    // Scene Level và Scene MainMenu là 2 Scene khác nhau nên không gọi thẳng hàm của nhau được. Các nút
+    // "Về màn chọn Level" / "Về màn chọn nhân vật" / "Màn tiếp theo" đặt cờ ở đây rồi LoadScene, MainMenuUI.Start()
+    // đọc cờ và mở đúng panel. Cờ được XÓA ngay sau khi dùng để lần mở game sau không bị nhảy panel bất ngờ.
+    public static MenuPanel PendingPanel { get; set; } = MenuPanel.None;
+
+    // Đi kèm PendingPanel = CharacterSelect: true thì MainMenu tự chuyển SelectedStage sang Level kế tiếp trước
+    // khi mở màn chọn nhân vật (nút "Màn tiếp theo" ở màn hình Thắng).
+    // Việc tra Level kế tiếp PHẢI làm ở MainMenu chứ không phải trong Scene Level, vì danh sách toàn bộ Level
+    // (StageSelectPager.allStages) chỉ tồn tại ở MainMenu.
+    public static bool AdvanceToNextStage { get; set; } = false;
+
+    public static MenuPanel ConsumePendingPanel()
+    {
+        MenuPanel panel = PendingPanel;
+        PendingPanel = MenuPanel.None;
+        return panel;
+    }
+
+    // ==============================================
     // TIẾN TRÌNH MỞ KHÓA LEVEL
     // ==============================================
     // Số lượng Stage đã mở khóa, tính từ Stage 1. Mặc định luôn mở sẵn Stage 1.
@@ -209,6 +237,8 @@ public static class GameProgress
         UnlockedStageCount = 1;
         SelectedStage = null;
         SelectedCharacter = null;
+        PendingPanel = MenuPanel.None;
+        AdvanceToNextStage = false;
 
         Coin = 0;
         Diamond = 0;

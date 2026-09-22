@@ -513,7 +513,7 @@ public class Gun : MonoBehaviour
             Enemy enemy = hit.GetComponent<Enemy>();
             if (enemy == null) continue;
 
-            enemy.TakeDmg(laserDamage);
+            enemy.TakeDmg(laserDamage, origin); // Đẩy lùi dọc theo tia, tính từ gốc tia (tâm nhân vật)
             if (Player.Instance != null) Player.Instance.OnEnemyHit(laserDamage);
         }
 

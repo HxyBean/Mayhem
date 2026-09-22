@@ -82,7 +82,7 @@ public class MiniRobot : MonoBehaviour
 
     private void DealDamage(Enemy enemy)
     {
-        enemy.TakeDmg(dmg);
+        enemy.TakeDmg(dmg, transform.position); // Tỏa ra từ chỗ con mini robot phát nổ
         if (Player.Instance != null) Player.Instance.OnEnemyHit(dmg);
     }
 
