@@ -40,7 +40,9 @@ public class BossEnemy : Enemy
 
     protected override void Update()
     {
-        if (isCastingSkill) return; // Đứng im hoàn toàn trong lúc vận chiêu Dịch Chuyển
+        // Đứng im hoàn toàn trong lúc vận chiêu Dịch Chuyển, và không tung chiêu mới đè lên lúc đang Lướt
+        // (chiêu Lướt tự lo phần di chuyển - xem EnemyDashSkill).
+        if (isCastingSkill || IsDashing) return;
 
         if (Time.time >= nextSKillTime)// thời gian thực lớn hơn thời gian chiêu kế thì dùng skill
         {
@@ -181,9 +183,19 @@ public class BossEnemy : Enemy
         ReturnTelegraph();
     }
 
+    // Chiêu Lướt dùng CHUNG component EnemyDashSkill với USBEnemy (mục 6.3). Boss để Auto Trigger By Proximity
+    // = TẮT, vì lượt dùng chiêu do bộ chọn ngẫu nhiên bên dưới quyết định chứ không phải cứ tới gần là lướt.
+    private void Dash()
+    {
+        if (dashSkill == null) return;
+        dashSkill.TryDash(); // Còn trong thời gian hồi chiêu thì coi như lượt này bỏ lỡ, giống Teleport
+    }
+
     private void PickRandomSkill()
     {
-        int randomSkill = Random.Range(0, 5);
+        // NHỚ tăng số này mỗi khi thêm case mới - Random.Range(int) không bao gồm cận trên, để nguyên 5 là
+        // chiêu mới không bao giờ được chọn mà cũng chẳng có lỗi nào báo ra.
+        int randomSkill = Random.Range(0, 6);
 
         switch (randomSkill)
         {
@@ -201,6 +213,9 @@ public class BossEnemy : Enemy
                 break;
             case 4:
                 Teleport();
+                break;
+            case 5:
+                Dash();
                 break;
         }
     }

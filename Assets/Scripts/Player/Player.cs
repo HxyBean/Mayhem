@@ -58,11 +58,27 @@ public class Player : MonoBehaviour
     [Tooltip("Nút Blink kéo-thả (Pháp sư) - sẽ tự ẩn/hiện theo nhân vật được chọn")]
     [SerializeField] private GameObject blinkButtonObj;
 
+    [Header("Phản hồi khi ăn đòn (game juice)")]
+    [Tooltip("Tiếng nhân vật ăn đòn. Phát qua PlaySFXThrottled nên không bị rè khi dính nhiều nguồn damage " +
+             "cùng lúc. Để trống = không kêu gì")]
+    [SerializeField] private AudioClip hurtSound;
+    [Tooltip("Hiệu ứng animation khi được hồi máu (hút máu, nhặt Heart, nhặt USB). Được gắn làm CON của Player " +
+             "nên bám theo nhân vật. Để trống = không có hiệu ứng")]
+    [SerializeField] private GameObject healEffectPrefab;
+    [Tooltip("Khoảng cách tối thiểu giữa 2 lần hiện hiệu ứng hồi máu (giây). BẮT BUỘC > 0: hút máu kích hoạt " +
+             "MỖI viên đạn trúng quái, không chặn lại thì hiệu ứng spawn hàng chục lần mỗi giây")]
+    [SerializeField] private float healEffectMinInterval = 0.4f;
+    [SerializeField] private AudioClip healSound;
+
+    private float nextHealEffectTime = 0f;
+
     // Private Components
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
     private Animator animator;
     private TrailRenderer trailRenderer;
+    // Hiệu ứng nháy khi ăn đòn (tùy chọn) - chỉ cần gắn component DamageFlash lên GameObject Player
+    private DamageFlash damageFlash;
     public Joystick joystick;
 
     // State Variables
@@ -88,6 +104,7 @@ public class Player : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
         trailRenderer = GetComponent<TrailRenderer>();
+        damageFlash = GetComponent<DamageFlash>();
 
         // Rigidbody2D tự "ngủ" khi đứng yên đủ lâu, lúc đó OnTriggerStay2D (VD stayDmg của Enemy) ngừng bắn
         // dù vẫn đang chạm nhau. Ép không bao giờ ngủ để Player luôn nhận đủ sát thương stay kể cả đứng yên.
@@ -344,6 +361,10 @@ public class Player : MonoBehaviour
         // Lưu lại mốc tốc độ GỐC của nhân vật này (sau khi đã áp override) để tính % Speed tăng thêm qua augment
         baseMoveSpeedSnapshot = moveSpeed;
 
+        // Hồi máu riêng của nhân vật. StartHealthRegen CỘNG DỒN nên lượng hồi mua ở Shop (áp sau hàm này) vẫn
+        // được cộng thêm chứ không ghi đè. Bỏ qua khi = 0 để không chạy coroutine vô ích.
+        if (character.baseRegen > 0f) StartHealthRegen(character.baseRegen);
+
         bool isDash = abilityType == AbilityType.Dash;
         bool isBlink = abilityType == AbilityType.Blink;
         if (dashButtonObj != null) dashButtonObj.SetActive(isDash);
@@ -394,10 +415,41 @@ public class Player : MonoBehaviour
         currentHP = Mathf.Max(currentHP, 0);
         UpdateHPBar();
 
+        // Juice: nháy + kêu NGAY, trước khi kiểm tra chết - đặt sau Die() thì đòn chí mạng sẽ im re, mà đó
+        // lại đúng là lúc cần phản hồi rõ nhất. Đặt sau isInvulnerable ở trên nên lúc Xoay Kiếm bất tử sẽ
+        // không nháy, đúng ý đồ: không nháy = không mất máu.
+        if (damageFlash != null) damageFlash.Flash();
+        if (AudioManager.Instance != null) AudioManager.Instance.PlaySFXThrottled(hurtSound);
+        if (DamagePopupSpawner.Instance != null) DamagePopupSpawner.Instance.SpawnPlayerDamage(transform.position, actualDmg);
+
         if (currentHP <= 0)
         {
             Die();
         }
+    }
+
+    // ==============================================
+    // HIỆU ỨNG HỒI MÁU
+    // ==============================================
+    // Gọi từ MỌI nguồn hồi máu (hút máu, Heart, USB) nên phải tự chặn spam: hút máu kích hoạt mỗi viên đạn
+    // trúng quái, mà Mage bắn 1 phát nổ lan trúng cả đàn thì có thể gọi hàng chục lần trong 1 frame.
+    private void PlayHealFeedback()
+    {
+        if (Time.time < nextHealEffectTime) return;
+        nextHealEffectTime = Time.time + Mathf.Max(0f, healEffectMinInterval);
+
+        if (AudioManager.Instance != null) AudioManager.Instance.PlaySFXThrottled(healSound);
+
+        if (healEffectPrefab == null) return;
+
+        GameObject effect = ObjectPoolManager.Instance != null
+            ? ObjectPoolManager.Instance.SpawnObject(healEffectPrefab, transform.position, Quaternion.identity)
+            : Instantiate(healEffectPrefab, transform.position, Quaternion.identity);
+
+        // Gắn làm con của Player để bám theo lúc chạy, giống hiệu ứng chém của Knight. An toàn vì Player
+        // không bao giờ vào Pool (xem quy tắc ở mục 9 của CLAUDE.md).
+        effect.transform.SetParent(transform);
+        effect.transform.localPosition = Vector3.zero;
     }
 
     // Gọi từ KnightCombat khi giữ Khiên (resistance tạm thời) - resistance = 0 khi thả tay
@@ -426,13 +478,22 @@ public class Player : MonoBehaviour
             currentHP += healValue;
             currentHP = Mathf.Min(currentHP, maxHP);
             UpdateHPBar();
+
+            // Nằm TRONG khối if nên máu đã đầy thì không hiện gì - đúng ý đồ: không hồi được thì đừng báo là có
+            PlayHealFeedback();
         }
     }
 
     public void RestoreFullHP()
     {
-        currentHP = maxHP; 
-        UpdateHPBar();     
+        // ApplyCharacterData/ApplyShopUpgrades cũng gọi hàm này lúc khởi tạo màn chơi, khi đó currentHP còn = 0
+        // và chưa có gì để "hồi" cả - chỉ báo hiệu ứng khi thực sự đang thiếu máu giữa ván.
+        bool wasInjured = currentHP > 0f && currentHP < maxHP;
+
+        currentHP = maxHP;
+        UpdateHPBar();
+
+        if (wasInjured) PlayHealFeedback();
     }
 
     private void Die()

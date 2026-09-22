@@ -94,7 +94,7 @@ public class KnightCombat : MonoBehaviour
             Enemy enemy = hit.GetComponent<Enemy>();
             if (enemy == null) continue;
 
-            enemy.TakeDmg(damage);
+            enemy.TakeDmg(damage, transform.position); // Đẩy lùi khỏi nhân vật (script này nằm trên Player)
             if (Player.Instance != null) Player.Instance.OnEnemyHit(damage);
             SpawnEffect(bloodPrefab, hit.transform.position, false);
         }
@@ -257,6 +257,9 @@ public class KnightCombat : MonoBehaviour
             Enemy enemy = hit.GetComponent<Enemy>();
             if (enemy == null) continue;
 
+            // CỐ Ý không đẩy lùi: Xoay Kiếm gây damage theo tick (0.15s/tick, ~33 tick trong 5 giây) nên đẩy
+            // lùi mỗi tick sẽ thành bức tường hất văng, giữ quái lơ lửng ngoài tầm suốt thời gian chiêu chạy.
+            // Muốn hiệu ứng "lốc xoáy hất ra" thì đổi thành TakeDmg(damage, transform.position).
             enemy.TakeDmg(damage);
             SpawnEffect(bloodPrefab, hit.transform.position, false);
         }

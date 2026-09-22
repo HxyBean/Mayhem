@@ -61,7 +61,7 @@ public class Bomb : MonoBehaviour
                 Enemy enemy = hit.GetComponent<Enemy>();
                 if (enemy != null)
                 {
-                    enemy.TakeDmg(bombDamage);
+                    enemy.TakeDmg(bombDamage, transform.position); // Tỏa ra từ tâm vụ nổ
                 }
             }
         }

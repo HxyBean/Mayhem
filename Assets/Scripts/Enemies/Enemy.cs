@@ -17,7 +17,29 @@ public abstract class Enemy : MonoBehaviour
     [SerializeField] protected GameObject bigXpObject;
     [Tooltip("Prefab Coin rơi ra khi chết (mỗi con rơi đúng 1 coin). Để trống nếu muốn loại quái này KHÔNG rơi coin.")]
     [SerializeField] protected GameObject coinObject;
+    [Tooltip("Tiếng trúng đòn riêng của loại quái này. Để trống = không kêu gì. Luôn phát qua PlaySFXThrottled " +
+             "nên không sợ rè khi cả đàn cùng ăn damage lan/DOT trong 1 frame")]
+    [SerializeField] protected AudioClip hitSound;
+
+    [Header("Đẩy lùi khi trúng đòn")]
+    [Tooltip("Quãng đường bị đẩy lùi (đơn vị world). Để 0 = MIỄN NHIỄM đẩy lùi - dùng cho Boss")]
+    [SerializeField] private float knockbackDistance = 0.15f;
+    [Tooltip("Đẩy lùi xong trong bấy nhiêu giây. Càng ngắn càng 'nảy', 0.06-0.1 là khoảng gọn gàng")]
+    [SerializeField] private float knockbackDuration = 0.08f;
+
     protected bool isDead = false;
+
+    // Hiệu ứng nháy khi ăn đòn (tùy chọn) - chỉ cần gắn component DamageFlash lên prefab là tự hoạt động
+    private DamageFlash damageFlash;
+
+    // Chiêu Lướt (tùy chọn) - gắn component EnemyDashSkill lên prefab là có. Để protected cho subclass đọc
+    // (VD Boss cần biết để không tung chiêu khác đè lên lúc đang lướt).
+    protected EnemyDashSkill dashSkill;
+    protected bool IsDashing => dashSkill != null && dashSkill.IsBusy;
+
+    // Trạng thái đẩy lùi đang diễn ra
+    private Vector2 knockbackVelocity;
+    private float knockbackTimer = 0f;
 
     // Hiệu ứng làm chậm (VD PotionZone). speedMultiplier = 1 nghĩa là tốc độ bình thường.
     private float speedMultiplier = 1f;
@@ -39,6 +61,9 @@ public abstract class Enemy : MonoBehaviour
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb != null) rb.sleepMode = RigidbodySleepMode2D.NeverSleep;
 
+        damageFlash = GetComponent<DamageFlash>();
+        dashSkill = GetComponent<EnemyDashSkill>();
+
         if (statsCaptured) return;
 
         baseMoveSpeed = enemyMoveSpeed;
@@ -58,6 +83,7 @@ public abstract class Enemy : MonoBehaviour
         speedMultiplier = 1f;
         slowStackCount = 0;
         stayDmgTimer = 0f;
+        knockbackTimer = 0f; // Pool tái sử dụng: con trước có thể chết ngay giữa lúc đang bị đẩy lùi
         UpdateHPBar();
     }
 
@@ -79,6 +105,33 @@ public abstract class Enemy : MonoBehaviour
     protected virtual void Update()
     {
         MoveToPlayer();
+    }
+
+    // Đẩy lùi xử lý ở LateUpdate CHỨ KHÔNG PHẢI Update - đây là điểm mấu chốt khiến nó chạy cho MỌI loại quái
+    // mà không phải sửa subclass nào: RangedEnemy/USBEnemy/BossEnemy đều override Update() và phần lớn KHÔNG
+    // gọi base.Update(), nên nhét vào Update() của base là mất tác dụng với đúng những con thú vị nhất.
+    // LateUpdate chạy SAU mọi Update, nên nó ghi đè lên bất kỳ kiểu di chuyển nào con đó vừa thực hiện.
+    protected virtual void LateUpdate()
+    {
+        if (knockbackTimer <= 0f) return;
+
+        knockbackTimer -= Time.deltaTime;
+        transform.position += (Vector3)(knockbackVelocity * Time.deltaTime);
+    }
+
+    // Đẩy lùi theo hướng TỪ nguồn sát thương RA. Gọi kèm trong TakeDmg(dmg, sourcePosition).
+    public void ApplyKnockback(Vector2 sourcePosition)
+    {
+        if (isDead || knockbackDistance <= 0f || knockbackDuration <= 0f) return;
+
+        Vector2 direction = (Vector2)transform.position - sourcePosition;
+
+        // Nguồn nằm trùng khít vị trí quái (VD Mini Robot nổ ngay khi chạm) thì không có hướng nào để đẩy -
+        // đẩy đại 1 hướng còn hơn nhân 0 rồi đứng im, vì đứng im trông như đòn đánh không ăn.
+        if (direction.sqrMagnitude < 0.0001f) direction = Vector2.right;
+
+        knockbackVelocity = direction.normalized * (knockbackDistance / knockbackDuration);
+        knockbackTimer = knockbackDuration;
     }
 
     // ==============================================
@@ -117,6 +170,11 @@ public abstract class Enemy : MonoBehaviour
     }
     protected void MoveToPlayer()
     {
+        // Đang vận sức/lướt thì EnemyDashSkill tự lo phần di chuyển. Đặt chốt chặn NGAY TẠI ĐÂY thay vì trong
+        // Update() của base: mọi subclass (RangedEnemy/USBEnemy/Boss) đều đi qua MoveToPlayer() dù có override
+        // Update() hay không, nên chỉ 1 dòng này là cả 8 loại quái đều xử lý đúng mà không phải sửa gì.
+        if (IsDashing) return;
+
         if (player != null)
         {
             float actualSpeed = enemyMoveSpeed * speedMultiplier;
@@ -149,6 +207,16 @@ public abstract class Enemy : MonoBehaviour
             transform.localScale = new Vector3(player.transform.position.x < transform.position.x ? -1 : 1, 1, 1);
         }
     }
+    // Sát thương CÓ hướng: gây damage rồi đẩy lùi khỏi nguồn. Dùng cho đòn đánh trúng trực tiếp (đạn, laser,
+    // chém, nổ). CỐ Ý tách riêng khỏi TakeDmg(dmg) thường thay vì tự suy ra hướng từ vị trí Player: sát thương
+    // theo tick (PotionZone, DOT aura của mã độc) phải gọi bản KHÔNG hướng, vì 1 phút DOT là 120 tick - đẩy
+    // lùi mỗi tick sẽ hất con quái ra khỏi bản đồ và biến mọi vùng DOT thành tường chắn.
+    public void TakeDmg(float dmg, Vector2 sourcePosition)
+    {
+        ApplyKnockback(sourcePosition);
+        TakeDmg(dmg);
+    }
+
     public virtual void TakeDmg(float dmg)
     {
         if (isDead) return;
@@ -156,6 +224,13 @@ public abstract class Enemy : MonoBehaviour
         currentHP -= dmg;
         currentHP = Mathf.Max(currentHP, 0);
         UpdateHPBar();
+
+        // Juice: nháy + kêu + hiện số NGAY, trước khi kiểm tra chết. Đặt sau Die() thì đòn kết liễu sẽ im re
+        // và không nháy gì cả, vì lúc đó object đã bị trả về Pool.
+        if (damageFlash != null) damageFlash.Flash();
+        if (AudioManager.Instance != null) AudioManager.Instance.PlaySFXThrottled(hitSound);
+        if (DamagePopupSpawner.Instance != null) DamagePopupSpawner.Instance.SpawnEnemyDamage(transform.position, dmg);
+
         if (currentHP <= 0)
         {
             Die();

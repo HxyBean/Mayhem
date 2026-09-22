@@ -15,7 +15,7 @@ public class Explosion : MonoBehaviour
         }
         if (collision.CompareTag("Enemy"))
         {
-            enemy.TakeDmg(dmg);
+            enemy.TakeDmg(dmg, transform.position); // Tỏa ra từ tâm vụ nổ
         }
         if (AudioManager.Instance != null)
         {

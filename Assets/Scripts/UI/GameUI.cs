@@ -69,7 +69,7 @@ public class GameUI : MonoBehaviour
             }
             else
             {
-                dmgText.text = "LEVEL: 1";
+                dmgText.text = "1";
             }
         }
     }

@@ -333,7 +333,7 @@ public class AugmentManager : MonoBehaviour
                 bullet.AddAmmo(10);
                 break;
             case "Regen":
-                player.StartHealthRegen(2f); // Hồi 2 máu mỗi giây
+                player.StartHealthRegen(1f); // Hồi 2 máu mỗi giây
                 ui.UpdateRegenText();
                 break;
             case "Reload":

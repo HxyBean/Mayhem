@@ -1,9 +1,13 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
+
+    // Lần cuối mỗi clip được phát qua PlaySFXThrottled - xem ghi chú ở hàm đó
+    private readonly Dictionary<AudioClip, float> lastSfxTime = new Dictionary<AudioClip, float>();
     [SerializeField] private AudioSource effectAudioSource;
     [SerializeField] private AudioSource defaultAudioSource;
     [SerializeField] private AudioSource bossAudioSource;
@@ -69,6 +73,23 @@ public class AudioManager : MonoBehaviour
     public void PlaySFX(AudioClip clip)
     {
         if (clip != null) effectAudioSource.PlayOneShot(clip);
+    }
+
+    // Phát SFX nhưng CHẶN phát lại quá dày. BẮT BUỘC dùng cho âm thanh trúng đòn thay vì PlaySFX thường:
+    // 1 viên đạn nổ lan của Mage, 1 phát Laser xuyên thấu, hay 1 tick DOT aura có thể gây damage cho hàng
+    // chục con quái trong CÙNG 1 FRAME -> bấy nhiêu lần PlayOneShot chồng lên nhau, nghe như tiếng rè và
+    // âm lượng bị đội lên gấp mấy chục lần.
+    //
+    // Đếm riêng theo từng clip để tiếng Player ăn đòn không bị tiếng trúng quái nuốt mất.
+    // Dùng unscaledTime vì Time.time đứng yên khi timeScale = 0 (đang mở hội thoại/shop/chọn augment).
+    public void PlaySFXThrottled(AudioClip clip, float minInterval = 0.06f)
+    {
+        if (clip == null || effectAudioSource == null) return;
+
+        if (lastSfxTime.TryGetValue(clip, out float last) && Time.unscaledTime - last < minInterval) return;
+
+        lastSfxTime[clip] = Time.unscaledTime;
+        effectAudioSource.PlayOneShot(clip);
     }
     public void PlayEnergySound()
     {
