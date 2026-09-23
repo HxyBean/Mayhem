@@ -7,7 +7,7 @@ public class BossEnemy : Enemy
     [SerializeField] private Transform firePos;// vị trí viên đạn bắn ra
     [SerializeField] private float speedNormalBullet = 20f;// tốc độ đạn thường
     [SerializeField] private float speedCircleBullet = 10f;// tốc độ đạn vòng tròn
-    [SerializeField] private float healValue = 100f;// giá trị hồi máu
+    [SerializeField] private float healValue = 250f;// giá trị hồi máu
     [SerializeField] private float skillCoolDown = 2f;// thời gian hồi chiêu
     [SerializeField] private int miniSpawnAmount = 3;// số lượng mini khi dưới 50% máu
     private float nextSKillTime = 0f;// thời gian tung chiêu tiếp theo
@@ -18,9 +18,10 @@ public class BossEnemy : Enemy
     [SerializeField] private GameObject diamondPrefabs;
 
     [Header("Teleport Skill")]
-    [SerializeField] private float teleportTelegraphTime = 0.25f; // Thời gian đứng im vận chiêu trước khi dịch chuyển
-    [SerializeField] private float teleportLandingRadius = 1.5f;  // Bán kính gây damage quanh điểm đáp xuống
+    [SerializeField] private float teleportTelegraphTime = 0.075f; // Thời gian đứng im vận chiêu trước khi dịch chuyển
+    [SerializeField] private float teleportLandingRadius = 2f;  // Bán kính gây damage quanh điểm đáp xuống
     [SerializeField] private GameObject teleportTelegraphPrefab;  // Hiệu ứng cảnh báo vị trí sắp đáp xuống (kéo prefab vào)
+    [SerializeField] private GameObject healEffectPrefab;  // Hiệu ứng heal (kéo prefab vào)
     private bool isCastingSkill = false; // Boss đứng im khi đang vận chiêu (không di chuyển, không dùng chiêu khác)
     private GameObject activeTelegraph;
 
@@ -30,7 +31,7 @@ public class BossEnemy : Enemy
         // base.OnEnable() tự tính maxHP = baseMaxHP * hệ số độ khó Stage (baseMaxHP được Die() cập nhật dần qua mỗi lần hồi sinh)
         base.OnEnable();
 
-        if (GameManager.Instance != null && GameManager.Instance.currentLevel >= 15)
+        if (GameManager.Instance != null && GameManager.Instance.currentLevel >= 25)
         {
             maxHP += 200f;
             currentHP = maxHP;
@@ -108,6 +109,14 @@ public class BossEnemy : Enemy
             UpdateHPBar();
         }
 
+        if (healEffectPrefab == null) return;
+
+        GameObject effect = ObjectPoolManager.Instance != null
+            ? ObjectPoolManager.Instance.SpawnObject(healEffectPrefab, transform.position, Quaternion.identity)
+            : Instantiate(healEffectPrefab, transform.position, Quaternion.identity);
+        effect.transform.SetParent(transform);
+        effect.transform.localPosition = Vector3.zero;
+
     }
 
     private void SpawnMini()
@@ -149,6 +158,11 @@ public class BossEnemy : Enemy
             activeTelegraph = ObjectPoolManager.Instance != null
                 ? ObjectPoolManager.Instance.SpawnObject(teleportTelegraphPrefab, targetPosition, Quaternion.identity)
                 : Instantiate(teleportTelegraphPrefab, targetPosition, Quaternion.identity);
+        
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayEnemyTeleportSound();
+            }
         }
 
         yield return new WaitForSeconds(teleportTelegraphTime);

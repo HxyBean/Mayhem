@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2447110161720465852}
   - component: {fileID: 8233710971257871582}
   - component: {fileID: 1727436623209134094}
+  - component: {fileID: 3662657086187768620}
   m_Layer: 0
   m_Name: USBenemyWarningDash
   m_TagString: Untagged
@@ -114,3 +115,16 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &3662657086187768620
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2282411556708286177}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00183195d03223f4ebb1ac65245251a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AutoDestroyOrPool
+  lifetime: 0.75

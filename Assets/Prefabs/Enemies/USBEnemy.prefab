@@ -186,7 +186,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::USBEnemy
   enemyMoveSpeed: 3
   maxHP: 300
-  enterDmg: 40
+  enterDmg: 30
   stayDmg: 1
   stayDmgInterval: 1
   hpBar: {fileID: 4918694772827743252}

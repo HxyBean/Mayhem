@@ -93,9 +93,25 @@ Asset hiện có: `GunnerData.asset`, `MageData.asset`, `KnightData.asset` (`Ass
   thị UI + có thêm cơ chế **hồi tự động theo thời gian** (`Gun.StartManaRegen()`, không có ở Gunner vốn chỉ nạp
   bằng nút).
 - Khả năng đặc biệt: **Blink** — dịch chuyển tức thời (không có telegraph/độ trễ), kéo-thả để chọn điểm đến, **giới
-  hạn cứng bán kính 5f** từ vị trí nhân vật (`Player.maxBlinkRange`), cooldown dài hơn Dash. Tự động không bao giờ
-  đưa Player vào vật cản (`FindSafeBlinkPosition` lùi dần về phía gốc nếu điểm đích đè lên `blinkObstacleMask`).
+  hạn cứng bán kính 5f** từ vị trí nhân vật (`Player.maxBlinkRange`), cooldown dài hơn Dash.
   Có hiệu ứng animation riêng lúc biến mất/xuất hiện (`blinkStartEffectPrefab`/`blinkEndEffectPrefab`).
+
+  **`FindSafeBlinkPosition()` quét CẢ ĐƯỜNG ĐI bằng `Physics2D.CircleCast`, không chỉ kiểm tra điểm đích.**
+  Vật cản trở nên ĐẶC hoàn toàn: không xuyên qua được, không đáp vào trong được, dày hay mỏng đều chặn như nhau.
+  Gặp vật cản thì **dừng ngay trước nó** chứ không hủy chiêu — đi được bao xa hay bấy nhiêu, vẫn hơn là đứng yên
+  mà vẫn mất lượt hồi chiêu.
+
+  > **Bài học — đừng để 1 tham số gánh 2 việc mâu thuẫn.** Cách cũ chỉ `OverlapCircle` tại đích rồi lùi dần, nên
+  > `blinkCheckRadius` vừa phải NHỎ (để lách khe giữa các chướng ngại vật) vừa phải LỚN (để không nhảy xuyên
+  > tường dày 2 đơn vị). Không có giá trị nào đúng cả: để 1 thì kẹt ở mọi khe hẹp, giảm xuống dưới 0.95 thì lọt
+  > hẳn vào trong cụm 2 rock chồng nhau. Quét đường đi tách 2 việc ra: `blinkCheckRadius` **chỉ còn là bề ngang
+  > nhân vật** (để nhỏ, khớp Collider của Player), việc chặn xuyên tường do chính phép quét lo.
+  >
+  > Hệ quả về gameplay: Blink giờ **chỉ tới được chỗ nhìn thẳng tới được** — không "nhảy cóc" qua đá nữa.
+  >
+  > Nếu vẫn đáp được vào trong đá sau thay đổi này thì lỗi KHÔNG còn ở code: kiểm tra `Collider2D` của prefab đá
+  > có phủ đúng phần hình vẽ không (collider nhỏ hơn sprite là có khoảng trống nhìn thì đặc mà vật lý thì rỗng),
+  > và Layer của đá có nằm trong `blinkObstacleMask` không.
 - Lõi riêng: SplashDamage (+10% dmg lan/lần), ManaRegen (+0.25 mana/s/lần, trần 2/s), BlinkCooldown (nhân
   `blinkCooldown *= 0.9` mỗi lần — **lưu ý: cách tính này là NHÂN DỒN (multiplicative), không phải trừ cố định**),
   Potion (mở khóa lõi ném bình thuốc — xem mục 5).
@@ -1058,8 +1074,15 @@ UI/
    / `CharacterData.exclusiveAugments` asset / `StageData.extraAugments` asset). Luôn thêm `case` trong CẢ
    `ApplyEffect()` (hiệu ứng) VÀ (nếu có trần/chỉ-chọn-1-lần) `CheckAndRemoveAugment()`. Đừng quên `break;`. Nếu
    augment cần lưu trạng thái cộng dồn, lưu trên `Player`/`Gun`/`KnightCombat` — KHÔNG BAO GIỜ trên object pooled.
-3. **Thêm Level mới**: tạo Scene mới (KHÔNG dùng chung Scene) + `StageData` asset mới trỏ đúng `sceneName`, thêm
-   vào Build Settings, thêm `StageButton` mới trong `stageSelectPanel`.
+3. **Thêm Level mới**: tạo Scene mới (KHÔNG dùng chung Scene) + `StageData` asset mới trỏ đúng `sceneName`,
+   **thêm Scene vào Build Settings**, và thêm `StageData` vào mảng `allStages` của `StageSelectPager`
+   (không phải dựng thêm nút — các ô nút dùng chung, xem mục 8.1).
+
+   > **Quên bước Build Settings là lỗi im lặng.** `SceneManager.LoadScene()` chỉ load được Scene nằm trong
+   > Build Settings; thiếu thì nó KHÔNG ném exception mà chỉ lặng lẽ không làm gì — nút "Vào chơi" bấm như
+   > không bấm, và trong bản build thì không có Console để nhìn ra. Đã từng mất thời gian vì Level4/Level5 có
+   > file Scene, có `StageData` đúng, nằm trong `allStages`, nhưng không được thêm vào Build Settings.
+   > `CharacterInfoPanel` giờ kiểm tra `Application.CanStreamedLevelBeLoaded()` trước và log lỗi chỉ đúng chỗ.
 4. **Thêm loại Enemy mới**: kế thừa `Enemy.cs`, chỉ override đúng phần khác biệt (theo pattern các subclass hiện
    có), đừng copy lại logic va chạm/damage-stay đã có sẵn ở base.
 5. **Thêm hiệu ứng animation cho hành động mới**: theo đúng pattern hiện tại — spawn prefab sprite/animation riêng

@@ -342,7 +342,7 @@ public class GameManager : MonoBehaviour
     {
         currentLevel++;
         currentXP -= xpToLevelUp;
-        xpToLevelUp *= 1.075f; // Tăng yêu cầu XP cho cấp sau
+        xpToLevelUp *= 1.1f; // Tăng yêu cầu XP cho cấp sau
 
         UpdateXPBar();
         UpdateLevelText();

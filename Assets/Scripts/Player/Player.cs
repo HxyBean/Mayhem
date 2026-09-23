@@ -36,12 +36,15 @@ public class Player : MonoBehaviour
     [SerializeField] private float dashCooldown = 1f;
 
     [Header("Blink (Pháp sư)")]
-    [SerializeField] private float maxBlinkRange = 5f;
+    [SerializeField] private float maxBlinkRange = 6f;
     [SerializeField] private float blinkCooldown = 3f;
     [Tooltip("Bán kính kiểm tra vật cản tại điểm đến, nên khớp kích thước Collider của Player")]
     [SerializeField] private float blinkCheckRadius = 0.3f;
     [Tooltip("Layer chứa vật cản (VD Rock) - Blink sẽ không bao giờ đưa Player vào bên trong các Layer này")]
     [SerializeField] private LayerMask blinkObstacleMask;
+    [Tooltip("Lùi lại thêm bấy nhiêu khi dừng trước vật cản, để nhân vật không dính sát mép collider. " +
+             "0.05-0.15 là đủ")]
+    [SerializeField] private float blinkStopMargin = 0.08f;
     [Tooltip("Overlay cooldown Blink, gán Image nằm trên chính nút BlinkButton (khác với Dash Bar vì 2 nút không hiện cùng lúc)")]
     [SerializeField] private Image blinkCooldownBar;
     [Tooltip("Hiệu ứng animation tại vị trí biến mất lúc bắt đầu Blink (để trống nếu không cần)")]
@@ -308,26 +311,36 @@ public class Player : MonoBehaviour
         }
     }
 
-    // Tìm vị trí gần "target" nhất mà không đè lên vật cản, bằng cách lùi dần về phía "origin"
+    // Tìm vị trí xa nhất trên đường Blink mà không đè vào vật cản.
+    //
+    // QUÉT CẢ ĐƯỜNG ĐI (CircleCast) chứ KHÔNG chỉ kiểm tra điểm đích. Cách cũ chỉ OverlapCircle tại đích rồi
+    // lùi dần, nên blinkCheckRadius phải gánh 2 việc mâu thuẫn nhau: vừa là "bề ngang nhân vật" (phải NHỎ để
+    // lách được khe giữa các chướng ngại vật), vừa là "độ dày tường chặn" (phải LỚN để không nhảy xuyên tường).
+    // Chỉnh to thì kẹt ở mọi khe hẹp, chỉnh nhỏ thì lọt hẳn vào trong đá - không có giá trị nào đúng cả.
+    //
+    // Quét đường đi thì 2 việc tách hẳn ra: blinkCheckRadius chỉ còn là bề ngang nhân vật (để nhỏ, khớp
+    // Collider của Player), còn việc chặn xuyên tường do chính phép quét lo - vật cản DÀY hay MỎNG đều chặn
+    // như nhau vì tia quét đụng vào là dừng.
     private Vector3 FindSafeBlinkPosition(Vector3 origin, Vector3 target)
     {
-        if (!Physics2D.OverlapCircle(target, blinkCheckRadius, blinkObstacleMask))
-        {
-            return target;
-        }
+        Vector2 delta = target - origin;
+        float distance = delta.magnitude;
+        if (distance < 0.001f) return origin;
 
-        const int steps = 10;
-        for (int i = 1; i <= steps; i++)
-        {
-            Vector3 candidate = Vector3.Lerp(origin, target, 1f - (float)i / steps);
-            if (!Physics2D.OverlapCircle(candidate, blinkCheckRadius, blinkObstacleMask))
-            {
-                return candidate;
-            }
-        }
+        Vector2 direction = delta / distance;
 
-        // Không tìm được chỗ trống nào trên đường đi - đứng yên tại chỗ thay vì kẹt vào vật cản
-        return origin;
+        RaycastHit2D hit = Physics2D.CircleCast(origin, blinkCheckRadius, direction, distance, blinkObstacleMask);
+
+        // Đường thông suốt -> tới thẳng đích
+        if (hit.collider == null) return target;
+
+        // Có vật cản -> dừng NGAY TRƯỚC nó thay vì hủy chiêu. Blink được bao xa hay bấy nhiêu vẫn hữu ích hơn
+        // là đứng yên tại chỗ mà vẫn mất lượt hồi chiêu.
+        // hit.distance là quãng đường TÂM đường tròn đi được tới lúc chạm, nên trừ thêm margin cho khỏi dính mép.
+        float safeDistance = hit.distance - blinkStopMargin;
+        if (safeDistance <= 0f) return origin; // Đã đứng sát/trong vật cản ngay từ đầu
+
+        return origin + (Vector3)(direction * safeDistance);
     }
 
     public void ReduceBlinkCooldown(float amount)

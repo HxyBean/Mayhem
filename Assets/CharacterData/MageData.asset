@@ -15,7 +15,7 @@ MonoBehaviour:
   characterName: Mage
   unlockedByDefault: 0
   coinPrice: 1
-  diamondPrice: 1
+  diamondPrice: -1
   baseBulletDamage: 15
   baseMaxHP: 150
   baseMoveSpeed: 5
@@ -34,8 +34,8 @@ MonoBehaviour:
   weaponOffset: {x: 0, y: 0}
   shootSound: {fileID: 8300000, guid: 45f7220247e4c824c8ef55dc93cd98d9, type: 3}
   reloadSound: {fileID: 8300000, guid: 14e2fff561eb88144a4a28e9de670393, type: 3}
-  shootButtonIcon: {fileID: 21300000, guid: 1a490bc202e865e45ab59b559efaaccc, type: 3}
-  reloadButtonIcon: {fileID: 21300000, guid: 95066051c2e217746ae2dc0a28c8d7dd, type: 3}
+  shootButtonIcon: {fileID: 50930384, guid: 8d7e5912032b17c4bbc7a55826081c2e, type: 3}
+  reloadButtonIcon: {fileID: 1769884560, guid: 8d7e5912032b17c4bbc7a55826081c2e, type: 3}
   exclusiveAugments:
   - name: POTION
     description: Throw a potion, when it breaks, leaves a potion zone that slow and

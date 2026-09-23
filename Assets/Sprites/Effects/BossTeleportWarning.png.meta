@@ -1,19 +1,10 @@
 fileFormatVersion: 2
-guid: 24387da67a3fd874c828a68a83cad8ba
+guid: f34fc8ba83616cf4aae38db3e9c476b3
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1365141543120959418
-    second: BlinkButton_0
-  - first:
-      213: 4830609343494078401
-    second: BlinkButton_1
-  - first:
-      213: 5167327926894617090
-    second: BlinkButton_2
-  - first:
-      213: -1986603949154467206
-    second: BlinkButton_3
+      213: 5077277742218324045
+    second: BossTeleportWarning_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -55,12 +46,12 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 8
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -122,89 +113,177 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: BlinkButton_0
+      name: BossTeleportWarning_0
       rect:
         serializedVersion: 2
-        x: 6
-        y: 11
-        width: 12
-        height: 19
+        x: 0
+        y: 64
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6488526dffa0e0de0800000000000000
-      internalID: -1365141543120959418
+      spriteID: d48abeab43d167640800000000000000
+      internalID: 5077277742218324045
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: BlinkButton_1
+      name: BossTeleportWarning_1
       rect:
         serializedVersion: 2
-        x: 9
-        y: 5
-        width: 7
-        height: 7
+        x: 32
+        y: 64
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 1cfb5afaa95c90340800000000000000
-      internalID: 4830609343494078401
+      spriteID: b97876ef402c9624ba939f13456ff5e6
+      internalID: -185376656
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: BlinkButton_2
+      name: BossTeleportWarning_2
       rect:
         serializedVersion: 2
-        x: 17
-        y: 7
-        width: 10
-        height: 7
+        x: 64
+        y: 64
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 20262803f5906b740800000000000000
-      internalID: 5167327926894617090
+      spriteID: 8812fae8078cc10489696743dba50504
+      internalID: 1327368989
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: BlinkButton_3
+      name: BossTeleportWarning_3
       rect:
         serializedVersion: 2
-        x: 18
-        y: 16
-        width: 9
-        height: 15
+        x: 0
+        y: 32
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: a728245db3a2e64e0800000000000000
-      internalID: -1986603949154467206
+      spriteID: 848529694810b65468252e4e581d01f9
+      internalID: -1688694281
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BossTeleportWarning_4
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2197d765026b75e4ea5d763d6a097fb3
+      internalID: -494897318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BossTeleportWarning_5
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 09ac309cb94b3444b877eb00bdd37555
+      internalID: 958285999
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BossTeleportWarning_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ca63208bccf980c4db56b187579df322
+      internalID: 778155100
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BossTeleportWarning_7
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6ac2fcc467b91854ab00e7158edef0ec
+      internalID: -368890510
       vertices: []
       indices: 
       edges: []
@@ -213,7 +292,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 34321ec21c1adf747b714659371fc679
     internalID: 0
     vertices: []
     indices: 
@@ -221,12 +300,18 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":3.0,"y":3.0},"gridSpriteSize":{"x":32.0,"y":32.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      BlinkButton_0: -1365141543120959418
-      BlinkButton_1: 4830609343494078401
-      BlinkButton_2: 5167327926894617090
-      BlinkButton_3: -1986603949154467206
+      BossTeleportWarning_0: 5077277742218324045
+      BossTeleportWarning_1: -185376656
+      BossTeleportWarning_2: 1327368989
+      BossTeleportWarning_3: -1688694281
+      BossTeleportWarning_4: -494897318
+      BossTeleportWarning_5: 958285999
+      BossTeleportWarning_6: 778155100
+      BossTeleportWarning_7: -368890510
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

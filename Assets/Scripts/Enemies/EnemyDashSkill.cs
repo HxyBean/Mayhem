@@ -130,6 +130,11 @@ public class EnemyDashSkill : MonoBehaviour
         activeWarning = ObjectPoolManager.Instance != null
             ? ObjectPoolManager.Instance.SpawnObject(warningPrefab, transform.position, warningRotation)
             : Instantiate(warningPrefab, transform.position, warningRotation);
+        
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayEnemyDashSound();
+        }
     }
 
     private void RemoveWarning()

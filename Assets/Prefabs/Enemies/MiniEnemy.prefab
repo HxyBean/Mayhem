@@ -112,7 +112,7 @@ MonoBehaviour:
   enemyMoveSpeed: 6
   maxHP: 20
   enterDmg: 1
-  stayDmg: 2
+  stayDmg: 10
   stayDmgInterval: 0.25
   hpBar: {fileID: 1019848250171912985}
   xpObject: {fileID: 8789430838050173954, guid: b74ab656e476f51428375dc0fb5175d6, type: 3}

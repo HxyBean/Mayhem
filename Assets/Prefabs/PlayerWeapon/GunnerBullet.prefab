@@ -108,6 +108,10 @@ MonoBehaviour:
   moveSpeed: 25
   timeDestroy: 0.5
   dmg: 10
+  maxRange: 0
+  splashRadius: 0
+  splashDamagePercent: 0.5
+  splashEffectPrefab: {fileID: 0}
   bloodPrefabs: {fileID: 9088506091093890957, guid: b63981d6935e29c42b12fa8657dc83e3, type: 3}
 --- !u!61 &-8534235142137759450
 BoxCollider2D:

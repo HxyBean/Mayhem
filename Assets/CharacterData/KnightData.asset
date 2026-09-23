@@ -22,7 +22,7 @@ MonoBehaviour:
   baseRegen: 2
   combatType: 1
   bulletPrefab: {fileID: 0}
-  usesAmmo: 1
+  usesAmmo: 0
   shotDelay: 0
   abilityType: 2
   abilityDescription: Increases resistance by 60% and movement speed by 30%, basic

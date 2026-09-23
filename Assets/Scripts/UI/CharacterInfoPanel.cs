@@ -290,7 +290,19 @@ public class CharacterInfoPanel : MonoBehaviour
             return;
         }
 
+        string sceneName = GameProgress.SelectedStage.sceneName;
+
+        // SceneManager.LoadScene chỉ load được Scene đã nằm trong Build Settings. Thiếu ở đó thì nó KHÔNG ném
+        // exception mà chỉ lặng lẽ không làm gì - nút Play bấm như không bấm, và trong bản build thì không có
+        // Console để nhìn ra. Kiểm tra trước để ít nhất còn có dòng lỗi chỉ đúng chỗ cần sửa.
+        if (!Application.CanStreamedLevelBeLoaded(sceneName))
+        {
+            Debug.LogError($"CharacterInfoPanel: Scene '{sceneName}' chưa được thêm vào Build Settings " +
+                           "(File > Build Profiles/Build Settings > Scene List) nên không load được.");
+            return;
+        }
+
         GameProgress.SelectedCharacter = currentCharacter;
-        SceneManager.LoadScene(GameProgress.SelectedStage.sceneName);
+        SceneManager.LoadScene(sceneName);
     }
 }

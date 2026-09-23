@@ -16,6 +16,8 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip reLoadClip;
     [SerializeField] private AudioClip BombClip;
     [SerializeField] private AudioClip LaserClip;
+    [SerializeField] private AudioClip enemyDashClip;
+    [SerializeField] private AudioClip enemyTeleportClip;
 
     [Header("Master Mute Button Settings")]
     [SerializeField] private Image muteButtonImage;
@@ -102,6 +104,14 @@ public class AudioManager : MonoBehaviour
     public void PlayLaserSound()
     {
         effectAudioSource.PlayOneShot(LaserClip);
+    }
+    public void PlayEnemyDashSound()
+    {
+        effectAudioSource.PlayOneShot(enemyDashClip);
+    }
+    public void PlayEnemyTeleportSound()
+    {
+        effectAudioSource.PlayOneShot(enemyTeleportClip);
     }
     public void PlayDefaultAudio()
     {
