@@ -269,14 +269,15 @@ public class Gun : MonoBehaviour
                 break;
 
             case ShootMode.Burst:
-                if (!HasAmmo(3)) break; // Cần ít nhất 3 viên
-                ShootBurst(currentDamage * 0.4f); // Giảm 60% sát thương mỗi viên
-                ConsumeAmmo(3);
+                if (!HasAmmo(1)) break; // Cần ít nhất 3 viên
+                ShootBurst(currentDamage * 1f); // Giảm 60% sát thương mỗi viên
+                ConsumeAmmo(1);
+                shotDelay = 0.6f;
                 break;
 
             case ShootMode.Split:
                 if (!HasAmmo(3)) break; // Cần ít nhất 3 viên
-                ShootSplit(currentDamage * 0.4f); // Giảm 60% sát thương mỗi viên
+                ShootSplit(currentDamage * 1f); // Giảm 60% sát thương mỗi viên
                 ConsumeAmmo(3);
                 break;
         }

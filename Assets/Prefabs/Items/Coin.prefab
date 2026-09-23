@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2401018585652603571}
   - component: {fileID: 1522060311267383330}
   - component: {fileID: 4845601239612000449}
+  - component: {fileID: -325828339034066964}
   m_Layer: 0
   m_Name: Coin
   m_TagString: Coin
@@ -180,3 +181,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &-325828339034066964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8955785383546072880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cb6757c27e735f4e9e155784dda23c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDropMotion
+  flightDuration: 0.35
+  arcHeight: 0.7
+  spinSpeed: 0
+  popScale: 1
+  popStartScale: 0.4

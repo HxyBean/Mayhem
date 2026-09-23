@@ -1,37 +1,25 @@
 fileFormatVersion: 2
-guid: 058b0d48d73cee34bb209435d03058a0
+guid: 8c4c50ed1bc6ee84080a479d7034e669
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 84792699975233493
-    second: HowToPlayButton_0
+      213: -8176141006911167327
+    second: PoisionEnemyBullet_0
   - first:
-      213: 4999397766115941014
-    second: HowToPlayButton_1
+      213: -4601429418461607210
+    second: PoisionEnemyBullet_1
   - first:
-      213: -1713562898164865088
-    second: HowToPlayButton_2
+      213: 4560656809403885946
+    second: PoisionEnemyBullet_2
   - first:
-      213: 3521290182291995518
-    second: HowToPlayButton_3
+      213: 4443297777914414065
+    second: PoisionEnemyBullet_3
   - first:
-      213: -5104993066729985686
-    second: HowToPlayButton_4
+      213: -5188278951490388561
+    second: PoisionEnemyBullet_4
   - first:
-      213: -6920646983210757782
-    second: HowToPlayButton_5
-  - first:
-      213: 2758220208708679113
-    second: HowToPlayButton_6
-  - first:
-      213: 6165974265816010840
-    second: HowToPlayButton_7
-  - first:
-      213: 1941054088142339188
-    second: HowToPlayButton_8
-  - first:
-      213: -4141715853913655094
-    second: HowToPlayButton_9
+      213: -185854423907267804
+    second: PoisionEnemyBullet_5
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -73,12 +61,12 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 16
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -140,221 +128,133 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: HowToPlayButton_0
+      name: PoisionEnemyBullet_0
       rect:
         serializedVersion: 2
-        x: 6
-        y: 788
-        width: 100
-        height: 105
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 5dfe199e28e3d2100800000000000000
-      internalID: 84792699975233493
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: HowToPlayButton_1
-      rect:
-        serializedVersion: 2
-        x: 607
-        y: 841
-        width: 58
-        height: 52
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 69ad834c7cd616540800000000000000
-      internalID: 4999397766115941014
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: HowToPlayButton_2
-      rect:
-        serializedVersion: 2
-        x: 98
-        y: 706
-        width: 8
-        height: 7
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 0c7289a7f933838e0800000000000000
-      internalID: -1713562898164865088
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: HowToPlayButton_3
-      rect:
-        serializedVersion: 2
-        x: 6
-        y: 234
-        width: 1182
-        height: 445
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e7bb592a3c22ed030800000000000000
-      internalID: 3521290182291995518
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: HowToPlayButton_4
-      rect:
-        serializedVersion: 2
-        x: 263
-        y: 0
-        width: 16
+        x: 3
+        y: 3
+        width: 10
         height: 10
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a692abc6adb6729b0800000000000000
-      internalID: -5104993066729985686
+      spriteID: 1a42e81c213888e80800000000000000
+      internalID: -8176141006911167327
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HowToPlayButton_5
+      name: PoisionEnemyBullet_1
       rect:
         serializedVersion: 2
-        x: 288
-        y: 0
-        width: 16
+        x: 19
+        y: 3
+        width: 10
         height: 10
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a6118d56c3ce4ff90800000000000000
-      internalID: -6920646983210757782
+      spriteID: 6da4095c2507420c0800000000000000
+      internalID: -4601429418461607210
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HowToPlayButton_6
+      name: PoisionEnemyBullet_2
       rect:
         serializedVersion: 2
-        x: 313
-        y: 0
-        width: 24
+        x: 35
+        y: 3
+        width: 10
         height: 10
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9c572688aaa274620800000000000000
-      internalID: 2758220208708679113
+      spriteID: a792cfa6435ba4f30800000000000000
+      internalID: 4560656809403885946
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HowToPlayButton_7
+      name: PoisionEnemyBullet_3
       rect:
         serializedVersion: 2
-        x: 864
-        y: 0
-        width: 16
+        x: 51
+        y: 3
+        width: 10
         height: 10
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 850d9201de0f19550800000000000000
-      internalID: 6165974265816010840
+      spriteID: 1f30fd399c3c9ad30800000000000000
+      internalID: 4443297777914414065
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HowToPlayButton_8
+      name: PoisionEnemyBullet_4
       rect:
         serializedVersion: 2
-        x: 889
-        y: 0
-        width: 16
+        x: 67
+        y: 3
+        width: 10
         height: 10
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 47c3b85b86200fa10800000000000000
-      internalID: 1941054088142339188
+      spriteID: fad77c448c78ff7b0800000000000000
+      internalID: -5188278951490388561
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HowToPlayButton_9
+      name: PoisionEnemyBullet_5
       rect:
         serializedVersion: 2
-        x: 914
-        y: 0
-        width: 24
+        x: 83
+        y: 3
+        width: 10
         height: 10
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ac87fd6ef5ba586c0800000000000000
-      internalID: -4141715853913655094
+      spriteID: 42b821bd266bb6df0800000000000000
+      internalID: -185854423907267804
       vertices: []
       indices: 
       edges: []
@@ -363,7 +263,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: a2ff525c545605347a20a64882285264
     internalID: 0
     vertices: []
     indices: 
@@ -371,18 +271,16 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      HowToPlayButton_0: 84792699975233493
-      HowToPlayButton_1: 4999397766115941014
-      HowToPlayButton_2: -1713562898164865088
-      HowToPlayButton_3: 3521290182291995518
-      HowToPlayButton_4: -5104993066729985686
-      HowToPlayButton_5: -6920646983210757782
-      HowToPlayButton_6: 2758220208708679113
-      HowToPlayButton_7: 6165974265816010840
-      HowToPlayButton_8: 1941054088142339188
-      HowToPlayButton_9: -4141715853913655094
+      PoisionEnemyBullet_0: -8176141006911167327
+      PoisionEnemyBullet_1: -4601429418461607210
+      PoisionEnemyBullet_2: 4560656809403885946
+      PoisionEnemyBullet_3: 4443297777914414065
+      PoisionEnemyBullet_4: -5188278951490388561
+      PoisionEnemyBullet_5: -185854423907267804
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

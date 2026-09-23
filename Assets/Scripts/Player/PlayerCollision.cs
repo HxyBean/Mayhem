@@ -73,6 +73,23 @@ public class PlayerCollision : MonoBehaviour
             ReturnToPoolOrDestroy(collision.gameObject);
             if (audioManager != null) audioManager.PlayEnergySound();
         }
+        else if (collision.CompareTag("Magnet"))
+        {
+            CurrencyPickup currency = collision.GetComponent<CurrencyPickup>();
+            if (currency != null) currency.Collect();
+            PullOrbsWithTag("Coin");
+            ReturnToPoolOrDestroy(collision.gameObject);
+            if (audioManager != null) audioManager.PlayEnergySound();
+        }
+
+        else if (collision.CompareTag("Chest"))
+        {
+            CurrencyPickup currency = collision.GetComponent<CurrencyPickup>();
+            if (currency != null) currency.Collect();
+            ReturnToPoolOrDestroy(collision.gameObject);
+            if (audioManager != null) audioManager.PlayEnergySound();
+        }
+
     }
 
     // Gọi khi nhặt viên EXP Boss - hút bất kể các viên EXP khác đang ở đâu trên bản đồ, không phụ thuộc lõi Magnet
@@ -82,6 +99,10 @@ public class PlayerCollision : MonoBehaviour
         PullOrbsWithTag("ExpBig");
         PullOrbsWithTag("ExpBoss");
     }
+
+
+
+
 
     private void PullOrbsWithTag(string tag)
     {

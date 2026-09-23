@@ -12,8 +12,8 @@ GameObject:
   - component: {fileID: 6640264488180996239}
   - component: {fileID: 5561467560795444110}
   - component: {fileID: 4392557986188417030}
-  - component: {fileID: 1528591463722990345}
   - component: {fileID: -4589038329884216113}
+  - component: {fileID: 2751690457886727871}
   m_Layer: 0
   m_Name: Energy
   m_TagString: Energy
@@ -153,19 +153,6 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.2
---- !u!114 &1528591463722990345
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3451771213955610610}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 00183195d03223f4ebb1ac65245251a6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AutoDestroyOrPool
-  lifetime: 5
 --- !u!114 &-4589038329884216113
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -179,3 +166,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pickup
   magnetSpeed: 8
+--- !u!114 &2751690457886727871
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3451771213955610610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cb6757c27e735f4e9e155784dda23c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDropMotion
+  flightDuration: 0.35
+  arcHeight: 0.7
+  spinSpeed: 0
+  popScale: 1
+  popStartScale: 0.4

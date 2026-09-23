@@ -8,6 +8,14 @@ public class Pickup : MonoBehaviour
     [SerializeField] private float magnetSpeed = 8f;
     private bool isForcePulled = false;
 
+    // Hiệu ứng văng ra lúc quái chết (tùy chọn) - xem ghi chú trong Update()
+    private ItemDropMotion dropMotion;
+
+    private void Awake()
+    {
+        dropMotion = GetComponent<ItemDropMotion>();
+    }
+
     private void OnEnable()
     {
         // Reset lại vì object được tái sử dụng từ Pool, không được giữ trạng thái hút cưỡng bức của lần trước
@@ -16,6 +24,10 @@ public class Pickup : MonoBehaviour
 
     private void Update()
     {
+        // Đang bay ra khỏi xác quái thì ItemDropMotion lo phần di chuyển. Bỏ dòng này là 2 script cùng ghi
+        // transform.position trong cùng 1 frame và vật phẩm giật qua giật lại giữa 2 đích.
+        if (dropMotion != null && dropMotion.IsFlying) return;
+
         if (Player.Instance == null) return;
 
         Vector3 playerPos = Player.Instance.transform.position;

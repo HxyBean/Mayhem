@@ -273,6 +273,8 @@ ExplosionEnemy— override OnPlayerStay() = Die() ngay (nổ+chết khi chạm, 
                 override DropItems + Die() (spawn hiệu ứng nổ trước khi trả Pool)
 RangedEnemy   — override Update: ngoài stopRadius (8) thì MoveToPlayer(), vào trong thì đứng yên FlipEnemy()
                 + bắn EnemyBullet mỗi attackCoolDown; override DropItems (0-1 viên to + 1-2 viên nhỏ)
+PoisonEnemy   — Tiếp cận như RangedEnemy nhưng bắn đạn CẦU VỒNG có cảnh báo điểm rơi, để lại vùng độc.
+                Animation bắn chạy TRƯỚC rồi mới nhả đạn (xem 6.4)
 USBEnemy      — CHỈ override DropItems (rơi vật phẩm USB); KHÔNG spawn ngẫu nhiên (xem 6.3). Chiêu Lướt nằm ở
                 component EnemyDashSkill gắn kèm, không phải trong file này
 BossEnemy     — override OnEnable/Update/DropItems/Die, skill ngẫu nhiên + Teleport có telegraph + Lướt
@@ -392,6 +394,69 @@ nhiệm vụ cho NPC → `SpendUsb(usbRequired)` trừ đi. Hiển thị qua `us
 > Hai thứ không liên quan gì nhau; chỉ trùng chữ "USB" vì các field `[SerializeField]` `usbThreshold`/`usbBar`
 > trót đặt tên vậy từ trước và đổi tên sẽ mất tham chiếu trong Inspector.
 
+### 6.4 PoisonEnemy — đạn cầu vồng + vùng độc
+
+3 file: [PoisonEnemy.cs](Assets/Scripts/Enemies/PoisonEnemy.cs) (con quái) +
+[PoisonProjectile.cs](Assets/Scripts/Weapons/PoisonProjectile.cs) (viên đạn + vệt cảnh báo) +
+[PoisonZone.cs](Assets/Scripts/Weapons/PoisonZone.cs) (vùng độc để lại).
+
+Cơ chế tiếp cận giống `RangedEnemy` (ngoài `stopRadius` = 8 thì đuổi, vào trong thì đứng bắn), `attackCoolDown`
+= 5s. Khác ở 3 điểm:
+
+**1. Animation bắn chạy TRƯỚC rồi mới nhả đạn** (`ShootRoutine` → trigger animation → `WaitForSeconds
+(shootAnimationDelay)` → `FireProjectile()`). Bắn ngay lúc kích hoạt trigger thì đạn bay ra trước cả khi con quái
+kịp vung tay, nhìn như bị lỗi. `shootAnimationDelay` là con số **duy nhất** quyết định animation có ăn khớp hay
+không — chỉnh cho trùng đúng khung hình vung tay trong clip.
+
+> Cờ `isAttacking` làm con quái đứng im trong lúc vận đòn (`Update()` thoát sớm). **BẮT BUỘC reset trong
+> `OnEnable()`**: con trước chết ngay giữa lúc vận đòn thì coroutine bị giết, cờ còn sót lại, và con mới lấy từ
+> Pool sẽ đứng đơ vĩnh viễn vì `Update()` luôn thoát sớm.
+
+> **`OnEnable()` đặt `nextAttackTime = 0f` (sẵn sàng bắn ngay), KHÔNG phải `Time.time + attackCoolDown`.**
+> Cách sau làm đồng hồ hồi chiêu chạy từ lúc SPAWN chứ không phải từ lúc bắn — con quái đi tới nơi rồi vẫn phải
+> đứng chờ nốt phần thời gian còn lại, nhìn y như bị đơ. Với cooldown 5s thì quãng chờ đó dài tới mức không thể
+> không để ý. Bắn ngay lúc vào tầm vẫn công bằng vì người chơi còn cả animation vung tay + thời gian đạn bay +
+> vệt cảnh báo để né.
+>
+> `RangedEnemy` vẫn đang giữ kiểu cũ (`Time.time + attackCoolDown`) — cooldown của nó chỉ 2s nên ít lộ hơn,
+> nhưng về bản chất là cùng một vấn đề. Sửa nếu thấy con đó cũng khựng lúc mới vào tầm.
+
+**2. Đạn bay theo VÒNG CUNG tới 1 điểm đã khóa**, có vệt cảnh báo đứng tại điểm rơi suốt thời gian bay (giống
+telegraph của chiêu Teleport Boss). Đạn **không có Collider và không gây sát thương DỌC ĐƯỜNG BAY** — nó bay qua
+đầu mọi thứ. Sát thương chia 2 chặng: **`impactDamage` ngay khi chạm đất** (đứng lì trong vệt cảnh báo là ăn
+đòn luôn, không phải chờ tick đầu của vùng độc) + DoT của vùng độc để lại.
+
+> `impactRadius` **nên để bằng bán kính vùng độc và khớp sprite vệt cảnh báo**. Người chơi coi vệt cảnh báo là
+> vùng nguy hiểm — 3 con số này lệch nhau là ăn đòn ở chỗ nhìn như an toàn, kiểu bất công khó chịu nhất.
+>
+> `DealImpactDamage()` đo từ `targetPosition` chứ không phải `transform.position`: 2 giá trị trùng nhau ở khoảnh
+> khắc chạm đất, nhưng lấy đúng điểm đã cảnh báo thì sát thương luôn khớp với thứ người chơi nhìn thấy, kể cả
+> sau này có sửa cách tính đường bay.
+
+> **Điểm rơi khóa tại lúc NHẢ ĐẠN, không phải lúc bắt đầu animation.** Nghĩa là người chơi di chuyển trong lúc
+> animation chạy vẫn bị ngắm trúng — chủ ý, vì nếu khóa từ đầu animation thì chỉ cần đi bộ là né được và
+> animation chỉ còn là trang trí. Cơ hội né thật sự là `PoisonProjectile.flightDuration` (1.2s): để quá ngắn là
+> không né được, quá dài thì né quá dễ.
+
+> Vệt cảnh báo đứng YÊN tại đích, **không gắn làm con của viên đạn** — vừa vì nó phải nằm im ở đích trong khi
+> đạn còn bay, vừa vì gắn làm con của object sắp về Pool là dính đúng lỗi ở mục 9. `OnDisable()` của đạn dọn vệt
+> cảnh báo, nếu không thì đạn bị tắt giữa chừng sẽ để lại vệt nằm vĩnh viễn và người chơi né mãi một chỗ chẳng
+> bao giờ có gì rơi xuống.
+
+**3. Vùng độc** (`PoisonZone`) tồn tại `duration` (3s), gây `damagePerTick` cho Player mỗi `tickInterval`.
+
+> **CỐ Ý KHÔNG tái dùng `PotionZone`** (mục 7): vùng đó là đồ của người chơi nên quét tag `Enemy` và lấy damage
+> từ `Player.bulletDamage`. Đây là hướng ngược lại hoàn toàn — gộp chung sẽ phải nhét cờ "bên nào" vào giữa và
+> làm cả 2 khó đọc.
+>
+> Khác `PotionZone` thêm 1 điểm: đo khoảng cách thẳng tới `Player.Instance` thay vì Collider + `OverlapCircle`.
+> Cả màn chỉ có đúng 1 Player nên quét vật lý là thừa, và nhờ vậy prefab vùng độc **KHÔNG cần Collider2D/
+> Rigidbody2D** — bớt 2 thứ dễ quên khi dựng.
+>
+> Tick đầu tiên của vùng độc lùi lại 1 nhịp, vì cú nổ lúc chạm đất (`impactDamage`) đã lo phần "đứng lì thì ăn
+> đòn ngay" rồi. Cộng thêm 1 tick ngay khoảnh khắc đó nữa là ăn 2 lần trong cùng 1 frame mà không có cách nào
+> phản ứng. Nhịp lùi lại này chính là cơ hội chạy khỏi vũng độc còn sót lại.
+
 ---
 
 ## 7. Hệ thống vũ khí/kỹ năng ném-nhắm (Bomb / Potion / Blink)
@@ -435,10 +500,54 @@ trong `slowedEnemies` — tránh Enemy bị kẹt chậm vĩnh viễn nếu Zone
   còn lại trên bản đồ qua `GameObject.FindGameObjectsWithTag`).
 - Reset `isForcePulled = false` trong `OnEnable()` — bắt buộc vì object tái sử dụng qua Pool.
 
+**Vật phẩm văng ra khi quái chết** — [ItemDropMotion.cs](Assets/Scripts/Effects/ItemDropMotion.cs), gắn vào prefab
+vật phẩm nào muốn có (không gắn thì rơi đứng im như cũ, `Enemy.SpawnItem()` tự kiểm tra). `SpawnItem()` spawn vật
+phẩm **ngay tại xác quái** rồi `Launch()` bay theo vòng cung tới chỗ đáp — chính việc spawn tại xác quái mới tạo
+ra cảm giác "văng ra", chứ không phải hiện sẵn ở chỗ đáp.
+
+> **`Pickup.Update()` phải nhường chỗ trong lúc vật phẩm còn đang bay** (`if (dropMotion.IsFlying) return;`).
+> Cả 2 script đều ghi thẳng `transform.position` mỗi frame, chạy song song là vật phẩm giật qua giật lại giữa
+> 2 đích. Cùng kiểu chốt chặn với `Enemy.MoveToPlayer()` và `IsDashing` ở mục 6.3.
+
+> **`spinSpeed` mặc định = 0**: prefab vật phẩm thường có Animator, mà clip animation có thể keyed Rotation và
+> sẽ ghi đè góc xoay do code set (cùng cái bẫy với hiệu ứng cảnh báo của `USBEnemy` ở mục 6.3). Chỉ bật khi chắc
+> clip không đụng tới Rotation.
+
+**Chỗ đáp phải TRÁNH VẬT CẢN** (`Enemy.GetRandomDropPosition()`): rơi vào trong đá là vật phẩm coi như mất trắng —
+Player không đi tới được, chỉ nhặt được nếu tình cờ đã có lõi Magnet đủ xa. Hàm thử tối đa 10 chỗ ngẫu nhiên, chỗ
+nào `OverlapCircle` không dính `itemDropObstacleMask` thì lấy; thử hết vẫn không được thì **rơi ngay dưới chân
+quái** — chỗ đó chắc chắn đi tới được vì con quái vừa đứng ở đấy.
+
+> Layer vật cản cấu hình ở **`GameManager.itemDropObstacleMask`** (1 chỗ mỗi Scene, không phải trên từng prefab
+> quái — để trên prefab thì thêm loại quái mới lại phải nhớ set, quên là loại đó lặng lẽ rơi đồ vào đá).
+> **Để trống thì tự mượn lại `blinkObstacleMask` của Player**, vì đó cũng chính là danh sách Layer vật cản của
+> Scene — khỏi phải khai cùng một thứ ở 2 nơi. Cả 2 đều trống thì bỏ qua kiểm tra, hành vi y như trước.
+
 [`PlayerCollision.cs`](Assets/Scripts/Player/PlayerCollision.cs) xử lý toàn bộ va chạm nhặt đồ theo Tag:
 `EnemyBullet` (-10hp), `Energy` (+1 energy, nếu đang gọi Boss thì +3 XP luôn — tương đương 1.5 viên EXP nhỏ),
-`Heart` (heal), `USB` (AddUSB, có thể WinGame), `ExpSmall` (+2 XP), `ExpBig` (+5 XP), `ExpBoss` (+50 XP + hút hết
-EXP còn lại về phía Player), `Coin`/`Diamond` (tiền tệ — xem 8.1).
+`Heart` (heal), `USB` (cộng tài nguyên USB + báo NPC), `ExpSmall` (+2 XP), `ExpBig` (+5 XP), `ExpBoss` (+50 XP +
+hút hết EXP còn lại về phía Player), `Coin`/`Diamond` (tiền tệ — xem 8.1), `Magnet` / `Chest` (xem ngay dưới).
+
+**Magnet & Chest** — 2 vật phẩm này **KHÔNG có script riêng**, chỉ là 2 nhánh Tag trong `PlayerCollision` dùng
+chung `CurrencyPickup`. Muốn đổi giá trị thì chỉnh `currencyType`/`amount` ngay trên prefab, không đụng code.
+
+| Tag | Hành vi |
+|---|---|
+| `Magnet` | `CurrencyPickup.Collect()` + `PullOrbsWithTag("Coin")` — hút CƯỠNG BỨC mọi Coin trên bản đồ về Player, bất kể lõi Magnet có hay không |
+| `Chest` | Chỉ `CurrencyPickup.Collect()` — thực chất là 1 túi tiền lớn, khác Coin thường đúng ở chỗ `amount` để cao |
+
+> **Vật phẩm Magnet chỉ hút COIN**, không hút EXP/Energy/Heart/Kim cương. Muốn hút thêm loại nào thì thêm 1 dòng
+> `PullOrbsWithTag("<Tag>")`. (Khác hẳn `ExpBoss`, vốn gọi `PullAllExpOrbsToPlayer()` để hút cả 3 loại EXP.)
+
+> **`PullOrbsWithTag()` chỉ hút được object có gắn `Pickup.cs`** — nó tìm `GetComponent<Pickup>()` rồi bỏ qua nếu
+> null. Prefab `Coin` hiện có ĐỦ cả `Pickup` lẫn `CurrencyPickup` nên chạy đúng; nhưng nếu sau này thêm loại vật
+> phẩm mới mà quên gắn `Pickup`, vật phẩm Magnet sẽ **im lặng không hút được nó** mà không báo lỗi gì.
+
+> **CẢNH BÁO — 2 Tag này chưa được khai báo trong `ProjectSettings/TagManager.asset`** (danh sách hiện có dừng ở
+> `Coin`, `Diamond`). `CompareTag()` với Tag chưa khai báo **ném `UnityException`**, mà 2 nhánh này nằm CUỐI chuỗi
+> `else if` nên mọi va chạm không khớp các Tag phía trên (VD chạm Enemy) đều rơi xuống đó và ném lỗi. Nếu Unity
+> đang mở mà chưa Save Project thì file trên đĩa chỉ là bản cũ — kiểm tra lại
+> **Edit → Project Settings → Tags and Layers** xem đã có `Magnet` và `Chest` chưa.
 
 ### 8.1 Tiền tệ: Coin & Kim cương (Diamond)
 
@@ -980,12 +1089,15 @@ Weapons/
   PlayerBullet.cs           — Đạn người chơi, splash damage (Mage)
   KnightCombat.cs           — Toàn bộ combat Melee (Knight): chém tự động, Stamina, Khiên, Xoay Kiếm
   Bomb.cs / Potion.cs       — Object bay tới đích rồi kích hoạt (nổ / spawn zone)
-  PotionZone.cs              — Vùng DoT + slow
+  PotionZone.cs              — Vùng DoT + slow (của NGƯỜI CHƠI, gây damage cho Enemy)
+  PoisonProjectile.cs         — Đạn cầu vồng tới điểm đã khóa + vệt cảnh báo điểm rơi (mục 6.4)
+  PoisonZone.cs               — Vùng độc của ENEMY, gây damage cho Player theo tick (mục 6.4)
   EnemyBullet.cs             — Đạn của Enemy/Boss
 
 Enemies/
   Enemy.cs                  — Base abstract: HP/move/collision/stage-difficulty dùng chung
   BasicEnemy/MiniEnemy/EnergyEnemy/HealEnemy/ExplosionEnemy/RangedEnemy.cs — Override tối thiểu theo hành vi riêng
+  PoisonEnemy.cs              — Bắn đạn cầu vồng có cảnh báo điểm rơi, để lại vùng độc (mục 6.4)
   USBEnemy.cs                 — Rơi vật phẩm USB; spawn theo mốc 50 mạng (mục 6.3)
   EnemyDashSkill.cs           — Component chiêu Lướt dùng chung (USBEnemy tự kích hoạt, Boss gọi tay) — mục 6.3
   BossEnemy.cs                — Skill ngẫu nhiên, hồi sinh, Teleport có telegraph
@@ -997,6 +1109,7 @@ Effects/
   DamageFlash.cs               — Nháy màu/nháy sáng sprite khi ăn đòn, dùng chung Player/Enemy (mục 8.6)
   DamagePopup.cs               — Con số sát thương bay lên rồi mờ dần (mục 8.6)
   DamagePopupSpawner.cs        — Singleton giữ prefab con số + màu riêng cho Player/Enemy (mục 8.6)
+  ItemDropMotion.cs            — Vật phẩm văng ra theo vòng cung khi quái chết (mục 8)
 
 Shaders/
   SpriteFlash.shader           — Bản sao URP Sprite-Lit-Default + _FlashColor/_FlashAmount (mục 8.6)

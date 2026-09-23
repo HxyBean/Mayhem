@@ -195,8 +195,11 @@ public class Player : MonoBehaviour
     {
         if (canDash && !isDashing)
         {
+            AudioManager.Instance.PlayGunnerDashSound();
             StartCoroutine(Dash());
+            
         }
+
     }
 
     private IEnumerator Dash()
@@ -342,6 +345,10 @@ public class Player : MonoBehaviour
 
         return origin + (Vector3)(direction * safeDistance);
     }
+
+    // Dùng lại làm mặc định cho việc chọn chỗ đáp của vật phẩm rơi ra (Enemy.GetRandomDropPosition), để không
+    // phải khai báo LẠI cùng một danh sách Layer vật cản ở chỗ thứ hai trong mỗi Scene.
+    public LayerMask GetObstacleMask() => blinkObstacleMask;
 
     public void ReduceBlinkCooldown(float amount)
     {

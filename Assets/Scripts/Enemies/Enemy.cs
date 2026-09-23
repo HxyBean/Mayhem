@@ -237,26 +237,70 @@ public abstract class Enemy : MonoBehaviour
         }
     }
 
+    // Chọn chỗ đáp NGẪU NHIÊN nhưng phải TRÁNH VẬT CẢN. Rơi vào trong đá là vật phẩm coi như mất trắng:
+    // Player không đi tới được, và chỉ nhặt được nếu tình cờ đã có lõi Magnet đủ xa.
+    //
+    // Thử nhiều lần rồi mới bỏ cuộc, vì 1 lần bốc trúng chỗ kẹt là chuyện bình thường; bỏ cuộc thì rơi ngay
+    // dưới chân quái - chỗ đó chắc chắn đi tới được vì con quái vừa đứng ở đấy.
     protected Vector3 GetRandomDropPosition(float radius = 2f)
     {
-        Vector2 randomOffset = UnityEngine.Random.insideUnitCircle * radius;
-        return transform.position + new Vector3(randomOffset.x, randomOffset.y, 0f);
+        LayerMask obstacleMask = GetDropObstacleMask();
+
+        const int maxAttempts = 10;
+        for (int i = 0; i < maxAttempts; i++)
+        {
+            Vector2 randomOffset = UnityEngine.Random.insideUnitCircle * radius;
+            Vector3 candidate = transform.position + new Vector3(randomOffset.x, randomOffset.y, 0f);
+
+            // Chưa cấu hình Layer vật cản thì giữ nguyên hành vi cũ thay vì chặn hết mọi thứ
+            if (obstacleMask == 0) return candidate;
+
+            if (!Physics2D.OverlapCircle(candidate, GetDropClearance(), obstacleMask)) return candidate;
+        }
+
+        return transform.position;
+    }
+
+    // Ưu tiên cấu hình riêng trên GameManager; chưa set thì mượn lại Blink Obstacle Mask của Player để không
+    // phải khai cùng một danh sách Layer ở 2 chỗ trong mỗi Scene.
+    private LayerMask GetDropObstacleMask()
+    {
+        if (GameManager.Instance != null && GameManager.Instance.ItemDropObstacleMask != 0)
+        {
+            return GameManager.Instance.ItemDropObstacleMask;
+        }
+
+        return (Player.Instance != null) ? Player.Instance.GetObstacleMask() : (LayerMask)0;
+    }
+
+    private float GetDropClearance()
+    {
+        return (GameManager.Instance != null) ? GameManager.Instance.ItemDropClearance : 0.3f;
     }
 
     protected GameObject SpawnItem(GameObject prefab)
     {
         if (prefab == null) return null;
+
         Vector3 dropPos = GetRandomDropPosition(2f);
+
+        // Spawn NGAY TẠI XÁC QUÁI rồi mới bay tới chỗ đáp - đó là cái làm nên hiệu ứng "văng ra". Prefab không
+        // có ItemDropMotion thì đặt thẳng vào chỗ đáp như cũ.
         GameObject obj;
         if (ObjectPoolManager.Instance != null)
         {
-            obj = ObjectPoolManager.Instance.SpawnObject(prefab, dropPos, Quaternion.identity);
+            obj = ObjectPoolManager.Instance.SpawnObject(prefab, transform.position, Quaternion.identity);
         }
         else
         {
-            obj = Instantiate(prefab, dropPos, Quaternion.identity);
+            obj = Instantiate(prefab, transform.position, Quaternion.identity);
             Destroy(obj, 5f);
         }
+
+        ItemDropMotion motion = obj.GetComponent<ItemDropMotion>();
+        if (motion != null) motion.Launch(dropPos);
+        else obj.transform.position = dropPos;
+
         return obj;
     }
 

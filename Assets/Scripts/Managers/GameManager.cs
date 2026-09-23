@@ -47,6 +47,18 @@ public class GameManager : MonoBehaviour
     private enum PendingConfirmAction { ExitToMainMenu, RestartLevel }
     private PendingConfirmAction pendingConfirmAction = PendingConfirmAction.ExitToMainMenu;
 
+    [Header("Vật phẩm rơi ra")]
+    [Tooltip("Layer của vật cản (Rock/tường) - vật phẩm rơi ra sẽ tránh không đáp vào đó, vì đáp vào rồi thì " +
+             "không nhặt được nếu chưa có lõi Magnet.\n" +
+             "ĐỂ TRỐNG (Nothing) = bỏ qua kiểm tra và tự lấy lại Blink Obstacle Mask đang set trên Player.")]
+    [SerializeField] private LayerMask itemDropObstacleMask;
+    [Tooltip("Khoảng trống tối thiểu quanh chỗ đáp. Để quá nhỏ thì vật phẩm nằm sát mép đá, quá lớn thì ở " +
+             "hành lang hẹp không tìm được chỗ nào hợp lệ và mọi thứ rơi ngay dưới chân quái")]
+    [SerializeField] private float itemDropClearance = 0.3f;
+
+    public LayerMask ItemDropObstacleMask => itemDropObstacleMask;
+    public float ItemDropClearance => itemDropClearance;
+
     [Header("Camera & Audio")]
     [SerializeField] private CinemachineCamera cam;
     [SerializeField] private AudioManager audioManager;
@@ -123,7 +135,7 @@ public class GameManager : MonoBehaviour
         UpdateXPBar();
         UpdateLevelText();
 
-        cam.Lens.OrthographicSize = 5f;
+        cam.Lens.OrthographicSize = 7f;
 
         // Stage được chọn ở màn Stage Select (Scene MainMenu); nếu Play thẳng Scene này trong Editor thì dùng debugStage
         currentStage = GameProgress.SelectedStage != null ? GameProgress.SelectedStage : debugStage;
@@ -372,7 +384,7 @@ public class GameManager : MonoBehaviour
         IsBossCalled = true;
         SetUsbBarVisible(true); // Boss xuất hiện thì thanh USB mới có ý nghĩa, hiện lại cho người chơi theo dõi
         boss.SetActive(true);
-        cam.Lens.OrthographicSize = 8f;
+        cam.Lens.OrthographicSize = 10f;
         audioManager.PlayBossAudio();
     }
 

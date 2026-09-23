@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 3531503442761252012}
   - component: {fileID: 3804250416746977895}
   - component: {fileID: 5812388646783389971}
+  - component: {fileID: -6720580694267459582}
   m_Layer: 0
   m_Name: Heart
   m_TagString: Heart
@@ -193,3 +194,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pickup
   magnetSpeed: 8
+--- !u!114 &-6720580694267459582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7871176844099918519}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cb6757c27e735f4e9e155784dda23c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDropMotion
+  flightDuration: 0.35
+  arcHeight: 0.7
+  spinSpeed: 0
+  popScale: 1
+  popStartScale: 0.4

@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 4720414322706925680}
   - component: {fileID: 2965159654717436011}
   - component: {fileID: 2499459644578549280}
+  - component: {fileID: 7055399438999413374}
+  - component: {fileID: 6211812453281884494}
   m_Layer: 0
   m_Name: Usb
   m_TagString: USB
@@ -80,7 +82,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 369784413
-  m_SortingLayer: 9
+  m_SortingLayer: 10
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 33658500bd029fa47a478c4bf9f89530, type: 3}
@@ -166,3 +168,33 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
+--- !u!114 &7055399438999413374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7020812102562486728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cb6757c27e735f4e9e155784dda23c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDropMotion
+  flightDuration: 0.35
+  arcHeight: 0.7
+  spinSpeed: 0
+  popScale: 1
+  popStartScale: 0.4
+--- !u!114 &6211812453281884494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7020812102562486728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d749b5e61014206408d8ded7c8b13825, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Pickup
+  magnetSpeed: 8
